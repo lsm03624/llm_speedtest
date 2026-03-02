@@ -1504,6 +1504,8 @@
                 cloudRecoverBtn: '找回识别码',
                 cloudRecoverNote: '成功后将覆盖当前识别码并刷新页面。',
                 cloudShareTitle: '☁️ 分享测试结果',
+                cloudModelNameLabel: '模型名称',
+                cloudModelNamePlaceholder: '自动获取或手动修改',
                 cloudHardwareLabel: '硬件',
                 cloudHardwareHint: '（如 RTX 4090、M4 Pro）',
                 cloudHardwarePlaceholder: '必填',
@@ -1770,6 +1772,8 @@
                 cloudRecoverBtn: 'Recover',
                 cloudRecoverNote: 'Success will overwrite current user code and reload the page.',
                 cloudShareTitle: '☁️ Share Results',
+                cloudModelNameLabel: 'Model Name',
+                cloudModelNamePlaceholder: 'Auto-detected or manual input',
                 cloudHardwareLabel: 'Hardware',
                 cloudHardwareHint: '(e.g. RTX 4090, M4 Pro)',
                 cloudHardwarePlaceholder: 'Required',
@@ -1916,6 +1920,9 @@
             if (_e('cloudRecoverNote')) _e('cloudRecoverNote').textContent = t.cloudRecoverNote;
             // 上传弹窗
             if (_e('cloudShareModalTitle')) _e('cloudShareModalTitle').textContent = t.cloudShareTitle;
+            if (_e('cloudModelLabel')) _e('cloudModelLabel').textContent = t.cloudModelNameLabel;
+            const modelInput = _e('shareModelName');
+            if (modelInput) modelInput.placeholder = t.cloudModelNamePlaceholder;
             if (_e('cloudHwLabel')) _e('cloudHwLabel').textContent = t.cloudHardwareLabel;
             if (_e('cloudHwHint')) _e('cloudHwHint').textContent = t.cloudHardwareHint;
             const hwInput = _e('shareHardware');
@@ -3983,7 +3990,7 @@ async function processOllamaResponse(response, promptLength) {
             // chartContainer.style.display = 'none';
             progressBar.style.width = '0%';
             resultsDiv.innerHTML = "";
-            testResultsData = [];
+            testResultsData.length = 0; // Fix reference so window.testResultsData reflects this
 
             // 销毁旧图表（所有6个图表）
             if (prefillChartInstance) prefillChartInstance.destroy();
@@ -4125,6 +4132,7 @@ async function processOllamaResponse(response, promptLength) {
             exportCombinedChartBtn.style.display = 'block'; // v1.8
             screenshotComparisonBtn.style.display = 'block'; // 截图按钮
             stopTestBtn.style.display = 'none';
+            if (window._onTestComplete) window._onTestComplete();
         });
 
         copyMarkdownBtn.addEventListener('click', () => {
@@ -5731,7 +5739,7 @@ async function processOllamaResponse(response, promptLength) {
             }
 
             // 清空当前数据
-            testResultsData = [];
+            testResultsData.length = 0;
 
             // 填充表单参数
             if (record.config) {
@@ -5768,7 +5776,8 @@ async function processOllamaResponse(response, promptLength) {
             notes = record.notes || '';
 
             // 加载历史记录的结果数据
-            testResultsData = [...record.results];
+            testResultsData.length = 0;
+            testResultsData.push(...record.results);
 
             // 清空并重新创建结果表格
             const resultsDiv = document.getElementById('results');
@@ -6302,6 +6311,15 @@ async function processOllamaResponse(response, promptLength) {
 
             <div style="margin-bottom:12px;">
                 <label style="display:block; margin-bottom:4px; font-size:13px;">
+                    <span id="cloudModelLabel">模型名称</span>
+                </label>
+                <input id="shareModelName" type="text" maxlength="100" placeholder="自动获取或手动修改" style="
+                width:100%; box-sizing:border-box; padding:8px; border:1px solid #555;
+                border-radius:4px; background:#1e2227; color:#abb2bf; font-size:14px;">
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <label style="display:block; margin-bottom:4px; font-size:13px;">
                     <span id="cloudHwLabel">硬件</span> <span style="color:#e06c75;">*</span>
                     <span id="cloudHwHint" style="color:#888; font-size:11px;">（如 RTX 4090、M4 Pro）</span>
                 </label>
@@ -6622,6 +6640,26 @@ async function processOllamaResponse(response, promptLength) {
 
         function openShareModal() {
             document.getElementById('shareResultMsg').style.display = 'none';
+
+            // Auto-fill and persistence logic for Share Modal
+            const hwInput = document.getElementById('shareHardware');
+            const fwInput = document.getElementById('shareFramework');
+            const qtInput = document.getElementById('shareQuantization');
+
+            // Load from localStorage if available
+            hwInput.value = localStorage.getItem('llm_speedtest_share_hw') || '';
+            fwInput.value = localStorage.getItem('llm_speedtest_share_fw') || '';
+            qtInput.value = localStorage.getItem('llm_speedtest_share_qt') || '';
+
+            // Load model name from localStorage only
+            const modelInput = document.getElementById('shareModelName');
+            modelInput.value = localStorage.getItem('llm_speedtest_share_model') || '';
+
+            // Auto-fill notes from the main test page
+            const shareNotesInput = document.getElementById('shareNotes');
+            const mainNotes = document.getElementById('notes')?.value?.trim();
+            shareNotesInput.value = mainNotes || '';
+
             document.getElementById('shareModal').style.display = 'flex';
         }
 
@@ -6638,7 +6676,7 @@ async function processOllamaResponse(response, promptLength) {
 
             const avgPrefill = validPoints.reduce((s, r) => s + parseFloat(r.prefillSpeed), 0) / validPoints.length;
             const avgDecode = validPoints.reduce((s, r) => s + parseFloat(r.outputSpeed), 0) / validPoints.length;
-            const modelName = document.getElementById('modelName')?.value?.trim() || '未知模型';
+            const modelName = document.getElementById('shareModelName')?.value?.trim() || '未知模型';
             const concurrency = parseInt(document.getElementById('concurrency')?.value) || 1;
 
             return {
@@ -6685,6 +6723,15 @@ async function processOllamaResponse(response, promptLength) {
                 msgDiv.textContent = '❌ 请填写硬件信息（必填）';
                 return;
             }
+
+            // Save entries to localStorage for next time
+            localStorage.setItem('llm_speedtest_share_hw', hardware);
+            if (framework) localStorage.setItem('llm_speedtest_share_fw', framework);
+            if (quantization) localStorage.setItem('llm_speedtest_share_qt', quantization);
+
+            const modelName = document.getElementById('shareModelName')?.value?.trim();
+            if (modelName) localStorage.setItem('llm_speedtest_share_model', modelName);
+
             const payload = buildUploadPayload(hardware, framework, quantization, nickname, notes);
             if (!payload) {
                 msgDiv.style.cssText = 'display:block; background:#3a1515; color:#e06c75; padding:10px; border-radius:6px; font-size:13px;';
