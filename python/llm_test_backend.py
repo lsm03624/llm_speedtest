@@ -84,14 +84,14 @@ current_port = 18000
 
 @app.get("/")
 async def serve_frontend():
-    html_path = os.path.join(os.path.dirname(__file__), "LLM_Speed_Test_v2_Python_Backend.html")
+    html_path = os.path.join(os.path.dirname(__file__), "LLM_Speed_Test_v3_Python_Backend.html")
     if os.path.exists(html_path):
         return FileResponse(html_path)
     return {"message": "Frontend HTML not found"}
 
-@app.get("/LLM_Speed_Test_v2_Leaderboard.html")
-async def serve_leaderboard():
-    html_path = os.path.join(os.path.dirname(__file__), "LLM_Speed_Test_v2_Leaderboard.html")
+@app.get("/LLM_Speed_Test_v3_Leaderboard.html")
+async def get_leaderboard_page():
+    html_path = os.path.join(os.path.dirname(__file__), "LLM_Speed_Test_v3_Leaderboard.html")
     if os.path.exists(html_path):
         return FileResponse(html_path)
     return {"message": "Leaderboard HTML not found"}

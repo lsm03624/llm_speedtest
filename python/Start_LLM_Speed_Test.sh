@@ -17,7 +17,7 @@ cd "$SCRIPT_DIR"
 echo "[1/3] Checking dependencies..."
 # Check all dependencies in requirements.txt
 MISSING_DEPS=0
-for pkg in fastapi uvicorn httpx websockets pydantic; do
+for pkg in fastapi uvicorn httpx websockets pydantic slowapi; do
     if ! python3 -c "import ${pkg/uvicorn/uvicorn}" &> /dev/null; then
         MISSING_DEPS=1
         break

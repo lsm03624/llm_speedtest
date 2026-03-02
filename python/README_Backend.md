@@ -1,4 +1,4 @@
-# 🐍 LLM速度测试工具 - Python后端版 v2.2
+# 🐍 LLM速度测试工具 - Python后端版 v3
 
 ## 简介
 
@@ -54,8 +54,8 @@ pip install fastapi uvicorn httpx -i https://pypi.tuna.tsinghua.edu.cn/simple
 cd python
 python llm_test_backend.py &
 sleep 2
-open LLM_Speed_Test_v2_Python_Backend.html  # macOS
-# xdg-open LLM_Speed_Test_v2_Python_Backend.html  # Linux
+open LLM_Speed_Test_v3_Python_Backend.html  # macOS
+# xdg-open LLM_Speed_Test_v3_Python_Backend.html  # Linux
 ```
 
 ### 方法二：手动启动
@@ -71,7 +71,7 @@ python llm_test_backend.py
 
 #### 2. 打开前端页面
 
-在浏览器中打开 `LLM_Speed_Test_v2_Python_Backend.html`
+在浏览器中打开 `LLM_Speed_Test_v3_Python_Backend.html`
 
 ## 配置说明
 
@@ -178,7 +178,7 @@ app.add_middleware(
   - 解析响应流并统计tokens
   - 实时推送测试进度
 
-### 前端 (LLM_Speed_Test_v2_Python_Backend.html)
+### 前端 (LLM_Speed_Test_v3_Python_Backend.html)
 - **通信**: WebSocket连接后端
 - **功能**:
   - 配置测试参数
@@ -268,10 +268,13 @@ pip install -i https://pypi.mirrors.ustc.edu.cn/simple fastapi uvicorn httpx
 
 ## 更新日志
 
-### v2.2 (当前版本)
+### v3 (当前版本)
+- ✅ **天梯榜系统 (Leaderboard)**: 支持将测试成绩上传云端、生成专属分享词及专属图表连接，随时展示评测记录
+- ✅ **全网总榜与个人记录**: 快速查看大家在各显卡、各框架上的最新评测数据
+- ✅ **CSV 批量上传云端**: 支持将过往的历史评测 CSV 合并并一次性上传至排行榜
+- ✅ **新版用户身份与防刷机制**: 基于 Supabase 提供的安全防护、速率限制 (100次/天) 与数据存储
 
-#### Bug修复
-- ✅ **图表标题国际化修复**：修复所有图表标题的翻译问题，支持中英文动态切换
+### v2.2
   - 非对比模式：6个图表标题（Prefill/Decode/TTFT/ITL/百分位）完整翻译
   - 对比模式：6个对比图表标题完整翻译
   - Y轴标签：吞吐/时间单位的翻译

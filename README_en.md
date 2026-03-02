@@ -1,6 +1,6 @@
-# 🚀 Local LLM Inference Speed Test Tool v2.2 (Chao Modded Version)
+# 🚀 Local LLM Inference Speed Test Tool v3 (Chao Modded Version)
 
-![Version](https://img.shields.io/badge/version-2.2-blue.svg)
+![Version](https://img.shields.io/badge/version-3.0-blue.svg)
 
 ---
 
@@ -14,7 +14,7 @@ This project is a powerful local large language model (LLM) inference performanc
 
 **Two versions available:**
 - **Browser Version** (v2.2): Runs offline directly in browser with no server deployment needed, ensuring data privacy and testing convenience
-- **Python Backend Version** (v2.2): Uses Python backend to send requests, breaking through browser's 6-connection limit, supporting true high concurrency testing (50+ concurrent)
+- **Python Backend Version** (v3): Uses Python backend to send requests, breaking through browser's 6-connection limit, supporting true high concurrency testing (50+ concurrent) and uploading results to cloud leaderboards
 
 This tool is a modified version based on the original work by "Zhiyuan Suifeng" (Bilibili/DeepSeek-R1-0528), adding practical features and optimizations including retry mechanism, automatic chart display, Prefill/Decode speed separation, concurrency fixes, request timeout control, auto-save configuration, concurrent throughput fixes, and token source tracking.
 
@@ -26,7 +26,8 @@ This tool is a modified version based on the original work by "Zhiyuan Suifeng" 
 >
 > **Python backend version has more features and is actively maintained!**
 >
-> #### ✅ Python Backend Advantages (v2.2 Latest)
+> #### ✅ Python Backend Advantages (v3 Latest)
+> - **🏆 Cloud Leaderboard**: Upload test results to the global leaderboard and get exclusive sharing links
 > - **🚀 True High Concurrency**: Break through browser's 6-connection limit, support 50+ concurrent requests
 > - **📊 Complete 6-Chart System**: Prefill/Decode throughput + TTFT/ITL latency + Percentile statistics
 > - **🔍 TTFT & ITL Measurement**: Time To First Token + Inter-Token Latency (mean + std/jitter)
@@ -52,6 +53,12 @@ This tool is a modified version based on the original work by "Zhiyuan Suifeng" 
 ## Changelog
 
 <!-- Please note, the following changelog starts from v1.7. -->
+
+### v3 (Python Backend Major Update)
+*   **🏆 Leaderboard System**: Support uploading test results to the cloud, generating exclusive sharing links and chart views
+*   **🌎 Global & Personal Records**: Quickly view the latest evaluation data from various GPUs and frameworks
+*   **📂 Batch CSV Cloud Upload**: Support merging and uploading historical CSV evaluations to the leaderboard all at once
+*   **🛡️ New Identity & Anti-Spam Mechanics**: Powered by Supabase for security, rate limiting (100 times/day), and stable storage
 
 ### v2.2 (Chao Enhanced Modded Version - Browser Version Feature Sync)
 *   **🌐 Chart Title Internationalization**: Fixed all chart title translation issues, supports dynamic Chinese/English switching, Y-axis labels fully translated

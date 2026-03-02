@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "===================================="
-echo "   LLM速度测试工具 - 一键启动"
+echo "   LLM速度测试工具 v3 - 一键启动"
 echo "===================================="
 echo ""
 
@@ -17,7 +17,7 @@ cd "$SCRIPT_DIR"
 echo "[1/3] 检查依赖..."
 # 检查requirements.txt中的所有依赖
 MISSING_DEPS=0
-for pkg in fastapi uvicorn httpx websockets pydantic; do
+for pkg in fastapi uvicorn httpx websockets pydantic slowapi; do
     if ! python3 -c "import ${pkg/uvicorn/uvicorn}" &> /dev/null; then
         MISSING_DEPS=1
         break

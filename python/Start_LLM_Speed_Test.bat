@@ -29,6 +29,8 @@ pip show websockets >nul 2>&1
 if %errorlevel% neq 0 set MISSING_DEPS=1
 pip show pydantic >nul 2>&1
 if %errorlevel% neq 0 set MISSING_DEPS=1
+pip show slowapi >nul 2>&1
+if %errorlevel% neq 0 set MISSING_DEPS=1
 
 if %MISSING_DEPS%==1 (
     echo [INFO] Installing dependencies...
