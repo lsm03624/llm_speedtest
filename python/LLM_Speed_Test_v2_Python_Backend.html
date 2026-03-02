@@ -243,14 +243,16 @@
             border-collapse: collapse;
             margin: 0;
             font-family: "Courier New", Courier, monospace;
-            font-size: 0.85em; /* 稍微减小字体 */
+            font-size: 0.85em;
+            /* 稍微减小字体 */
             table-layout: fixed;
         }
 
         #results th,
         #results td {
             border: 1px solid #444;
-            padding: 6px 4px; /* 减小内边距 */
+            padding: 6px 4px;
+            /* 减小内边距 */
             text-align: left;
             color: #abb2bf;
             white-space: normal;
@@ -453,8 +455,13 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         .history-modal-content {
@@ -473,6 +480,7 @@
                 transform: translateY(-50px);
                 opacity: 0;
             }
+
             to {
                 transform: translateY(0);
                 opacity: 1;
@@ -759,7 +767,8 @@
             border-radius: 8px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             width: 95%;
-            max-width: 1400px; /* 增加宽度 */
+            max-width: 1400px;
+            /* 增加宽度 */
             max-height: 90vh;
             overflow: auto;
             animation: slideDown 0.3s;
@@ -962,9 +971,12 @@
         }
 
         @keyframes pulse-warning {
-            0%, 100% {
+
+            0%,
+            100% {
                 box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
             }
+
             50% {
                 box-shadow: 0 4px 20px rgba(255, 107, 107, 0.6);
             }
@@ -979,9 +991,9 @@
         }
 
         #chartContainer h3 {
-             color: #333;
-             margin-bottom: 10px;
-             text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
         }
 
         #outputChart {
@@ -1003,7 +1015,8 @@
 
 <body>
     <div class="container">
-        <h1><span class="logo">🚀</span> <span id="pageTitle">大模型 Prefill & Decode 性能测试工具 v1.8 (chao魔改版-加绘图修bug-自动保存api)</span><button class="lang-toggle" id="langToggle">English</button></h1>
+        <h1><span class="logo">🚀</span> <span id="pageTitle">大模型 Prefill & Decode 性能测试工具 v1.8
+                (chao魔改版-加绘图修bug-自动保存api)</span><button class="lang-toggle" id="langToggle">English</button></h1>
 
         <div class="api-selector">
             <div class="api-option active" data-type="openai">OpenAI兼容接口</div>
@@ -1107,7 +1120,7 @@
                 </div>
             </div>
             <div class="form-row">
-                 <div class="form-group">
+                <div class="form-group">
                     <label for="presencePenaltyInput">Presence Penalty</label>
                     <input type="number" id="presencePenaltyInput" value="" step="0.1" min="-2" max="2">
                 </div>
@@ -1130,6 +1143,8 @@
             <button id="viewHistory" style="background: #9b59b6;">📚 查看/对比历史记录</button>
             <!-- v1.9.1: 重置参数 -->
             <button id="resetParams" style="background: #e67e22;">🔄 重置参数</button>
+            <!-- 云端分享 -->
+            <button id="shareResults" style="display: none; background: #16a085;">☁️ 分享结果</button>
         </div>
         <div class="progress-container">
             <div id="progressBar" class="progress-bar" style="width: 0%"></div>
@@ -1143,7 +1158,8 @@
                 <input type="file" id="importFiles" multiple accept=".csv" style="padding: 5px;">
             </div>
             <button id="startComparison" style="background: #27ae60;">生成对比图表</button>
-            <button id="screenshotComparison" style="display: none; background: #8e44ad; margin-left: 10px;">📸 截图对比结果</button>
+            <button id="screenshotComparison" style="display: none; background: #8e44ad; margin-left: 10px;">📸
+                截图对比结果</button>
             <p class="notes" style="margin-top: 10px;">说明：先"开始测试"运行一次，然后再导入其他CSV文件，点击"生成对比图表"</p>
         </div>
 
@@ -1173,7 +1189,8 @@
         </div>
 
         <!-- v1.8: 新的对比绘图区域 -->
-        <div id="comparisonChartContainer" style="display: none; margin-top: 30px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+        <div id="comparisonChartContainer"
+            style="display: none; margin-top: 30px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
             <h3 id="comparisonPrefillTitle">对比 - 预填充 (Prefill) 吞吐</h3>
             <canvas id="comparisonPrefillChart"></canvas>
 
@@ -1193,7 +1210,8 @@
             <canvas id="comparisonDecodePercentileChart"></canvas>
 
             <!-- v1.8: 对比图表导出按钮 -->
-            <button id="exportComparisonChart" style="display: none; background: #8e44ad; margin-top: 15px;">导出一张对比图</button>
+            <button id="exportComparisonChart"
+                style="display: none; background: #8e44ad; margin-top: 15px;">导出一张对比图</button>
         </div>
 
 
@@ -1210,11 +1228,15 @@
                     <div id="historyListView">
                         <div class="history-actions">
                             <div class="history-actions-left">
-                                <button id="generateHistoryComparison" class="history-btn-primary" disabled>生成对比图表</button>
-                                <button id="selectAllHistory" class="history-btn-secondary" style="margin-left: 10px;">全选</button>
+                                <button id="generateHistoryComparison" class="history-btn-primary"
+                                    disabled>生成对比图表</button>
+                                <button id="selectAllHistory" class="history-btn-secondary"
+                                    style="margin-left: 10px;">全选</button>
                                 <button id="deselectAllHistory" class="history-btn-secondary">反选</button>
-                                <button id="deleteSelectedHistory" class="history-btn-danger" style="margin-left: 10px;" disabled>删除选中</button>
-                                <span id="selectedCount" style="color: #666; font-size: 14px; margin-left: 10px;">已选择 0 条</span>
+                                <button id="deleteSelectedHistory" class="history-btn-danger" style="margin-left: 10px;"
+                                    disabled>删除选中</button>
+                                <span id="selectedCount" style="color: #666; font-size: 14px; margin-left: 10px;">已选择 0
+                                    条</span>
                             </div>
                             <button id="clearAllHistory" class="history-btn-danger">清空全部</button>
                         </div>
@@ -1454,7 +1476,51 @@
                 historySelectAtLeastOne: '请至少选择一条历史记录进行对比',
                 historyConfirmDeleteSelected: '确定要删除选中的 {count} 条历史记录吗？',
                 historyDeletedSuccess: '已成功删除 {count} 条历史记录',
-                historyRecordNotFound: '历史记录未找到'
+                historyRecordNotFound: '历史记录未找到',
+                // 云端分享
+                cloudUserCode: '识别码',
+                cloudUsername: '用户名',
+                cloudNoUsername: '未设置用户名',
+                cloudSetUsername: '设置',
+                cloudLoading: '正在从云端加载...',
+                cloudRecover: '🔑 找回识别码',
+                cloudShareBtn: '☁️ 分享结果',
+                cloudSetUsernameTitle: '🏷 设置用户名',
+                cloudSetUsernameDesc: '用户名设置后<strong style="color:#e06c75;">不可更改</strong>，请谨慎选择。',
+                cloudUsernameLabel: '用户名',
+                cloudUsernamePlaceholder: '2-20位，字母开头，可含数字/下划线/横线',
+                cloudPasswordLabel: '密码（可选）',
+                cloudPasswordHint: '— 用于找回识别码',
+                cloudPasswordPlaceholder: '至少6位，丢失后无法找回识别码',
+                cloudUsernameRules: '以字母开头 · 2~20字符 · 可含字母/数字/下划线/横线 · 全局唯一',
+                cloudCancel: '取消',
+                cloudConfirmSet: '确认设置',
+                cloudRecoverTitle: '🔑 找回识别码',
+                cloudRecoverDesc: '输入你的用户名和密码，找回并恢复识别码。',
+                cloudRecoverNickLabel: '用户名',
+                cloudRecoverNickPlaceholder: '你设置的用户名',
+                cloudRecoverPwdLabel: '密码',
+                cloudRecoverPwdPlaceholder: '你设置的密码',
+                cloudRecoverBtn: '找回识别码',
+                cloudRecoverNote: '成功后将覆盖当前识别码并刷新页面。',
+                cloudShareTitle: '☁️ 分享测试结果',
+                cloudHardwareLabel: '硬件',
+                cloudHardwareHint: '（如 RTX 4090、M4 Pro）',
+                cloudHardwarePlaceholder: '必填',
+                cloudFrameworkLabel: '推理框架',
+                cloudFrameworkPlaceholder: 'llama.cpp / vllm',
+                cloudQuantLabel: '量化方式',
+                cloudQuantPlaceholder: 'Q4_K_M / FP16',
+                cloudDisplayNameLabel: '显示名称',
+                cloudDisplayNameFromUser: '（来自已设置的用户名）',
+                cloudDisplayNameNone: '（未设置用户名）',
+                cloudDisplayNamePlaceholder: '（未设置用户名则匿名）',
+                cloudNotesLabel: '备注（可选，200字以内）',
+                cloudNotesPlaceholder: '如版本、特殊配置等',
+                cloudUploadBtn: '📤 上传分享',
+                cloudUploading: '上传中...',
+                cloudUploadNote: '上传后数据公开可见，不可删除'
+
             },
             'en': {
                 pageTitle: 'LLM Prefill & Decode Performance Testing Tool v2.2 (chao mod)',
@@ -1676,7 +1742,51 @@
                 historySelectAtLeastOne: 'Please select at least one history record for comparison',
                 historyConfirmDeleteSelected: 'Are you sure you want to delete {count} selected record(s)?',
                 historyDeletedSuccess: 'Successfully deleted {count} record(s)',
-                historyRecordNotFound: 'History record not found'
+                historyRecordNotFound: 'History record not found',
+                // Cloud Share
+                cloudUserCode: 'User Code',
+                cloudUsername: 'Username',
+                cloudNoUsername: 'No username set',
+                cloudSetUsername: 'Set',
+                cloudLoading: 'Loading from cloud...',
+                cloudRecover: '🔑 Recover User Code',
+                cloudShareBtn: '☁️ Share Results',
+                cloudSetUsernameTitle: '🏷 Set Username',
+                cloudSetUsernameDesc: 'Username <strong style="color:#e06c75;">cannot be changed</strong> once set.',
+                cloudUsernameLabel: 'Username',
+                cloudUsernamePlaceholder: '2-20 chars, start with a letter, alphanumeric/_/-',
+                cloudPasswordLabel: 'Password (optional)',
+                cloudPasswordHint: '\u2014 to recover your user code',
+                cloudPasswordPlaceholder: 'Min 6 chars. Lost password = lost user code',
+                cloudUsernameRules: 'Start with letter \u00b7 2~20 chars \u00b7 letters/digits/_/- only \u00b7 globally unique',
+                cloudCancel: 'Cancel',
+                cloudConfirmSet: 'Confirm',
+                cloudRecoverTitle: '🔑 Recover User Code',
+                cloudRecoverDesc: 'Enter your username and password to recover your user code.',
+                cloudRecoverNickLabel: 'Username',
+                cloudRecoverNickPlaceholder: 'Your username',
+                cloudRecoverPwdLabel: 'Password',
+                cloudRecoverPwdPlaceholder: 'Your password',
+                cloudRecoverBtn: 'Recover',
+                cloudRecoverNote: 'Success will overwrite current user code and reload the page.',
+                cloudShareTitle: '☁️ Share Results',
+                cloudHardwareLabel: 'Hardware',
+                cloudHardwareHint: '(e.g. RTX 4090, M4 Pro)',
+                cloudHardwarePlaceholder: 'Required',
+                cloudFrameworkLabel: 'Framework',
+                cloudFrameworkPlaceholder: 'llama.cpp / vllm',
+                cloudQuantLabel: 'Quantization',
+                cloudQuantPlaceholder: 'Q4_K_M / FP16',
+                cloudDisplayNameLabel: 'Display Name',
+                cloudDisplayNameFromUser: '(from your username)',
+                cloudDisplayNameNone: '(no username set)',
+                cloudDisplayNamePlaceholder: '(anonymous if no username)',
+                cloudNotesLabel: 'Notes (optional, max 200 chars)',
+                cloudNotesPlaceholder: 'Version, special config...',
+                cloudUploadBtn: '📤 Upload',
+                cloudUploading: 'Uploading...',
+                cloudUploadNote: 'Data is public once uploaded and cannot be deleted'
+
             }
         };
 
@@ -1767,16 +1877,75 @@
                     infoElem.textContent = t.msgWaiting;
                 }
             }
+
+            // 云端分享 UI 语言更新
+            const _e = id => document.getElementById(id);
+            if (_e('cloudUserCodeLabel')) _e('cloudUserCodeLabel').textContent = t.cloudUserCode + '：';
+            if (_e('cloudUsernameLabel2')) _e('cloudUsernameLabel2').textContent = t.cloudUsername + '：';
+            if (_e('cloudNoUsernameText')) _e('cloudNoUsernameText').textContent = t.cloudNoUsername;
+            if (_e('cloudSetUsernameBtn')) _e('cloudSetUsernameBtn').textContent = t.cloudSetUsername;
+            if (_e('profileLoading')) _e('profileLoading').textContent = t.cloudLoading;
+            if (_e('cloudRecoverLink')) _e('cloudRecoverLink').textContent = t.cloudRecover;
+            const shareBtn = _e('shareResults');
+            if (shareBtn) shareBtn.textContent = t.cloudShareBtn;
+            // 设置弹窗
+            if (_e('cloudSetModalTitle')) _e('cloudSetModalTitle').innerHTML = t.cloudSetUsernameTitle;
+            if (_e('cloudSetModalDesc')) _e('cloudSetModalDesc').innerHTML = t.cloudSetUsernameDesc;
+            if (_e('cloudNickLabel')) _e('cloudNickLabel').textContent = t.cloudUsernameLabel;
+            const nickInput = _e('nicknameInput');
+            if (nickInput) nickInput.placeholder = t.cloudUsernamePlaceholder;
+            if (_e('cloudPwdLabel')) _e('cloudPwdLabel').textContent = t.cloudPasswordLabel;
+            if (_e('cloudPwdHint')) _e('cloudPwdHint').textContent = t.cloudPasswordHint;
+            const pwdInput = _e('nicknamePassword');
+            if (pwdInput) pwdInput.placeholder = t.cloudPasswordPlaceholder;
+            if (_e('cloudUsernameRulesText')) _e('cloudUsernameRulesText').textContent = t.cloudUsernameRules;
+            if (_e('cloudCancelSetBtn')) _e('cloudCancelSetBtn').textContent = t.cloudCancel;
+            if (_e('confirmNicknameBtn') && !_e('confirmNicknameBtn').disabled)
+                _e('confirmNicknameBtn').textContent = t.cloudConfirmSet;
+            // 找回弹窗
+            if (_e('cloudRecoverTitle')) _e('cloudRecoverTitle').textContent = t.cloudRecoverTitle;
+            if (_e('cloudRecoverDesc')) _e('cloudRecoverDesc').textContent = t.cloudRecoverDesc;
+            if (_e('cloudRecoverNickLbl')) _e('cloudRecoverNickLbl').textContent = t.cloudRecoverNickLabel;
+            const recNick = _e('recoverNickname');
+            if (recNick) recNick.placeholder = t.cloudRecoverNickPlaceholder;
+            if (_e('cloudRecoverPwdLbl')) _e('cloudRecoverPwdLbl').textContent = t.cloudRecoverPwdLabel;
+            const recPwd = _e('recoverPassword');
+            if (recPwd) recPwd.placeholder = t.cloudRecoverPwdPlaceholder;
+            if (_e('cloudCancelRecoverBtn')) _e('cloudCancelRecoverBtn').textContent = t.cloudCancel;
+            if (_e('doRecoverBtn')) _e('doRecoverBtn').textContent = t.cloudRecoverBtn;
+            if (_e('cloudRecoverNote')) _e('cloudRecoverNote').textContent = t.cloudRecoverNote;
+            // 上传弹窗
+            if (_e('cloudShareModalTitle')) _e('cloudShareModalTitle').textContent = t.cloudShareTitle;
+            if (_e('cloudHwLabel')) _e('cloudHwLabel').textContent = t.cloudHardwareLabel;
+            if (_e('cloudHwHint')) _e('cloudHwHint').textContent = t.cloudHardwareHint;
+            const hwInput = _e('shareHardware');
+            if (hwInput) hwInput.placeholder = t.cloudHardwarePlaceholder;
+            if (_e('cloudFwLabel')) _e('cloudFwLabel').textContent = t.cloudFrameworkLabel;
+            const fwInput = _e('shareFramework');
+            if (fwInput) fwInput.placeholder = t.cloudFrameworkPlaceholder;
+            if (_e('cloudQtLabel')) _e('cloudQtLabel').textContent = t.cloudQuantLabel;
+            const qtInput = _e('shareQuantization');
+            if (qtInput) qtInput.placeholder = t.cloudQuantPlaceholder;
+            if (_e('cloudDnLabel')) _e('cloudDnLabel').textContent = t.cloudDisplayNameLabel;
+            if (_e('nicknameSourceHint')) _e('nicknameSourceHint').textContent =
+                (_cachedNickname ? t.cloudDisplayNameFromUser : t.cloudDisplayNameNone);
+            const snInput = _e('shareNickname');
+            if (snInput) snInput.placeholder = t.cloudDisplayNamePlaceholder;
+            if (_e('cloudNotesLabel')) _e('cloudNotesLabel').textContent = t.cloudNotesLabel;
+            const notesInput = _e('shareNotes');
+            if (notesInput) notesInput.placeholder = t.cloudNotesPlaceholder;
+            if (_e('doUploadBtn')) _e('doUploadBtn').textContent = t.cloudUploadBtn;
+            if (_e('cloudUploadNote')) _e('cloudUploadNote').textContent = t.cloudUploadNote;
         }
 
         // 绑定语言切换按钮
-        document.getElementById('langToggle').addEventListener('click', function() {
+        document.getElementById('langToggle').addEventListener('click', function () {
             const newLang = currentLang === 'zh' ? 'en' : 'zh';
             switchLanguage(newLang);
         });
 
         // 页面加载时应用保存的语言
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             switchLanguage(currentLang);
         });
 
@@ -1949,7 +2118,8 @@
         let comparisonPrefillPercentileChartInstance = null;
         let comparisonDecodePercentileChartInstance = null;
 
-        let testResultsData = [];
+        window.testResultsData = [];
+        let testResultsData = window.testResultsData; // 暴露到 window 供分享功能读取
         let totalTests = 0;
         let completedTests = 0;
         let isTestingRunning = false;
@@ -2668,7 +2838,7 @@ async function executeAndMeasureRequest(apiUrl, fetchOptions, timeout, promptLen
             if (allPrefillSpeeds.length > 0) {
                 concurrencyStats.avgPrefillSpeed = allPrefillSpeeds.reduce((sum, speed) => sum + speed, 0) / allPrefillSpeeds.length;
             }
-             if (allOutputSpeeds.length > 0) {
+            if (allOutputSpeeds.length > 0) {
                 concurrencyStats.avgOutputSpeed = allOutputSpeeds.reduce((sum, speed) => sum + speed, 0) / allOutputSpeeds.length;
             }
         }
@@ -3103,18 +3273,18 @@ async function processOllamaResponse(response, promptLength) {
 
         async function testWithBackend(apiType, apiUrl, modelName, minLength, maxLength, step, testLengths, outputLength, temperature, top_p, presence_penalty, frequency_penalty, concurrency, timeout) {
             const t = translations[currentLang];
-            
+
             // Connect to Python backend WebSocket
             const backendUrl = document.getElementById('backendUrl').value.trim() || 'ws://localhost:18000';
             const wsUrl = backendUrl.endsWith('/ws/test') ? backendUrl : `${backendUrl}/ws/test`;
             console.log(`[WebSocket] Connecting to ${wsUrl}...`);
-            
+
             const ws = new WebSocket(wsUrl);
-            
+
             return new Promise((resolve, reject) => {
                 ws.onopen = () => {
                     console.log('[WebSocket] Connected successfully');
-                    
+
                     // Send test configuration to backend
                     const config = {
                         api_url: apiUrl,
@@ -3133,45 +3303,47 @@ async function processOllamaResponse(response, promptLength) {
                         presence_penalty: presence_penalty,
                         frequency_penalty: frequency_penalty
                     };
-                    
+
                     console.log('[WebSocket] Sending config:', config);
                     ws.send(JSON.stringify(config));
                 };
-                
+
                 ws.onmessage = (event) => {
                     const message = JSON.parse(event.data);
                     console.log('[WebSocket] Received:', message.type, message);
-                    
+
                     if (message.type === 'info') {
                         console.log(`[Info] ${message.message}`);
-                    } 
+                    }
                     else if (message.type === 'progress') {
                         console.log(`[Progress] Testing length ${message.testing_length} (${message.current}/${message.total})`);
-                    } 
+                    }
                     else if (message.type === 'result') {
                         handleBackendResult(message);
-                    } 
+                    }
                     else if (message.type === 'complete') {
                         console.log('[WebSocket] Test complete');
                         ws.close();
+                        // 显示云端分享按钮
+                        if (typeof showShareButton === 'function') showShareButton();
                         resolve();
-                    } 
+                    }
                     else if (message.type === 'error') {
                         console.error('[WebSocket] Error:', message.message);
                         ws.close();
                         reject(new Error(message.message));
                     }
                 };
-                
+
                 ws.onerror = (error) => {
                     console.error('[WebSocket] Connection error:', error);
                     reject(new Error('WebSocket connection failed. Make sure the Python backend is running.'));
                 };
-                
+
                 ws.onclose = () => {
                     console.log('[WebSocket] Connection closed');
                 };
-                
+
                 // Handle test stop
                 const checkStop = setInterval(() => {
                     if (!isTestingRunning) {
@@ -3185,14 +3357,14 @@ async function processOllamaResponse(response, promptLength) {
 
         function handleBackendResult(message) {
             const t = translations[currentLang];
-            
+
             // Find or create table row for this prompt length
             const tbody = resultsDiv.querySelector('tbody');
             let row = Array.from(tbody.querySelectorAll('tr')).find(r => {
                 const firstCell = r.querySelector('td');
                 return firstCell && firstCell.textContent == message.prompt_length;
             });
-            
+
             if (!row) {
                 row = document.createElement('tr');
                 tbody.appendChild(row);
@@ -3319,10 +3491,10 @@ async function processOllamaResponse(response, promptLength) {
                 cells[4].textContent = 'N/A';
                 cells[5].textContent = message.error || t.statusFailed;
                 cells[6].textContent = '-';
-                
+
                 row.classList.remove('info', 'success');
                 row.classList.add('error');
-                
+
                 testResultsData.push({
                     promptLength: message.prompt_length,
                     prefillTimeMs: 'N/A',
@@ -3337,7 +3509,7 @@ async function processOllamaResponse(response, promptLength) {
                     avgItlStd: 'N/A'
                 });
             }
-            
+
             completedTests++;
             progressBar.style.width = `${(completedTests / totalTests) * 100}%`;
             resultsDiv.scrollTop = resultsDiv.scrollHeight;
@@ -3346,7 +3518,7 @@ async function processOllamaResponse(response, promptLength) {
         // 显示测试详情弹窗
         function showTestDetail(testData) {
             const t = translations[currentLang];
-            
+
             // 预先获取所有需要的翻译文本，避免在嵌套模板字符串中访问
             const usageLabels = {
                 promptTokens: t.detailUsagePromptTokens,
@@ -3489,7 +3661,7 @@ async function processOllamaResponse(response, promptLength) {
                         </div>`;
                     });
                 }
-                
+
                 usageHTML = `<div class="detail-section">
                     <div class="detail-section-title">${t.detailSectionUsage}</div>
                     <div class="detail-info-grid">
@@ -3724,11 +3896,11 @@ async function processOllamaResponse(response, promptLength) {
             const stepMultiplier = parseInt(document.getElementById('stepMultiplier').value, 10) || 1;
             const concurrency = parseInt(document.getElementById('concurrency').value, 10) || 1;
             currentConcurrency = concurrency;
-            
+
             // 计算测试点列表（指数增长）
             const testLengths = [];
             let stepIndex = 0;
-            
+
             if (stepMultiplier === 1) {
                 // 倍数为1时，使用线性步长
                 let currentLength = minLength;
@@ -3747,9 +3919,9 @@ async function processOllamaResponse(response, promptLength) {
                     stepIndex++;
                 }
             }
-            
+
             console.log(`[步长计算] 基础步长: ${baseStep}, 倍数: ${stepMultiplier}, 测试点: ${testLengths.join(', ')}`);
-            
+
             const outputLength = parseInt(document.getElementById('outputLength').value, 10);
             const timeout = parseInt(document.getElementById('timeout').value, 10);
             const temperature = parseFloat(document.getElementById('temperatureInput').value);
@@ -3831,7 +4003,7 @@ async function processOllamaResponse(response, promptLength) {
 
             const notesMessage = document.createElement('p');
             notesMessage.className = 'notes';
-            notesMessage.textContent = `${t.labelNotesPrefix}${notes} | ${t.labelConcurrencyPrefix} ${concurrency} | ${t.labelTimeoutPrefix} ${timeout/1000}s`;
+            notesMessage.textContent = `${t.labelNotesPrefix}${notes} | ${t.labelConcurrencyPrefix} ${concurrency} | ${t.labelTimeoutPrefix} ${timeout / 1000}s`;
             resultsDiv.appendChild(notesMessage);
 
             // Python后端版本不受浏览器并发连接限制，无需警告
@@ -3922,11 +4094,11 @@ async function processOllamaResponse(response, promptLength) {
 
             // 根据测试是否被手动停止来显示不同的最终消息
             if (wasManuallyStopped) {
-                 const stopRow = document.createElement('tr');
+                const stopRow = document.createElement('tr');
                 stopRow.innerHTML = `<td colspan="8" class="info">${t.msgTestStopped}</td>`;
                 resultsDiv.querySelector('tbody').appendChild(stopRow);
             } else if (!testResultsData.some(r => r.status === t.statusSuccess)) {
-                 const noDataRow = document.createElement('tr');
+                const noDataRow = document.createElement('tr');
                 noDataRow.innerHTML = `<td colspan="8" class="info">${t.msgTestCompleteNoData}</td>`;
                 resultsDiv.querySelector('tbody').appendChild(noDataRow);
             }
@@ -3990,12 +4162,12 @@ async function processOllamaResponse(response, promptLength) {
                 .replace(/[<>:"\/\\|?*]/g, '_')  // 替换Windows禁止字符
                 .replace(/[\s\t\n\r]+/g, '_')    // 替换空白字符
                 .substring(0, 80);                // 限制模型名长度
-            
+
             const cleanNotes = notes
                 .replace(/[<>:"\/\\|?*]/g, '_')  // 替换Windows禁止字符
                 .replace(/[\s\t\n\r]+/g, '_')    // 替换空白字符
                 .substring(0, 60);                // 限制备注长度
-            
+
             const timestamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '_');
             const filename = `${cleanModelName}_${cleanNotes}_c${concurrencyValue}_${timestamp}.csv`
                 .substring(0, 200);  // 确保总长度<200字符
@@ -4086,8 +4258,8 @@ async function processOllamaResponse(response, promptLength) {
             // 计算总尺寸
             const maxWidth = Math.max(...validCanvases.map(c => c.width));
             const totalHeight = validCanvases.reduce((sum, c) => sum + c.height, 0)
-                              + padding * (validCanvases.length - 1)
-                              + titleHeight;
+                + padding * (validCanvases.length - 1)
+                + titleHeight;
 
             // 设置画布尺寸
             tempCanvas.width = maxWidth;
@@ -4129,7 +4301,7 @@ async function processOllamaResponse(response, promptLength) {
                 .replace(/[<>:"\/\\|?*]/g, '_')
                 .replace(/[\s\t\n\r]+/g, '_')
                 .substring(0, 80);
-            
+
             const timestamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '_');
 
             // 按顺序收集所有图表的canvas
@@ -4158,10 +4330,10 @@ async function processOllamaResponse(response, promptLength) {
             // v1.8: 从 comparisonData 动态生成文件名
             const labels = comparisonData.map(d =>
                 d.label.replace(/【.*?】/g, '') // 移除【导入】
-                       .replace(/[<>:"\/\\|?*]/g, '_') // 替换Windows禁止字符
-                       .replace(/[\s\t\n\r\(\),]/g, '_') // 替换空白字符和括号
-                       .replace(/_+/g, '_') // 移除连续的下划线
-                       .substring(0, 40) // 每个标签最多40字符
+                    .replace(/[<>:"\/\\|?*]/g, '_') // 替换Windows禁止字符
+                    .replace(/[\s\t\n\r\(\),]/g, '_') // 替换空白字符和括号
+                    .replace(/_+/g, '_') // 移除连续的下划线
+                    .substring(0, 40) // 每个标签最多40字符
             );
             const timestamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '_');
             // 安全拼接文件名，确保总长度<200
@@ -4187,20 +4359,20 @@ async function processOllamaResponse(response, promptLength) {
         // 截图功能：截取表格+Prefill+Decode图表并复制到剪贴板
         screenshotComparisonBtn.addEventListener('click', async () => {
             const t = translations[currentLang];
-            
+
             try {
                 // 1. 获取图表容器的实际显示宽度（不含padding）
                 const chartContainer = document.getElementById('chartContainer');
                 const containerStyle = window.getComputedStyle(chartContainer);
-                const containerWidth = chartContainer.clientWidth - 
-                    parseFloat(containerStyle.paddingLeft) - 
+                const containerWidth = chartContainer.clientWidth -
+                    parseFloat(containerStyle.paddingLeft) -
                     parseFloat(containerStyle.paddingRight);
-                
+
                 // 2. 创建一个临时容器，宽度与图表显示区域一致
                 const tempContainer = document.createElement('div');
                 tempContainer.style.cssText = `position: absolute; left: -9999px; top: 0; background: white; padding: 20px; width: ${containerWidth + 40}px;`;
                 document.body.appendChild(tempContainer);
-                
+
                 // 3. 克隆表格，让其自适应容器宽度
                 const resultsClone = resultsDiv.cloneNode(true);
                 resultsClone.style.width = '100%';
@@ -4210,7 +4382,7 @@ async function processOllamaResponse(response, promptLength) {
                     tableInClone.style.width = '100%';
                 }
                 tempContainer.appendChild(resultsClone);
-                
+
                 // 4. 添加Prefill图表标题和canvas
                 const prefillTitle = document.createElement('h3');
                 prefillTitle.textContent = t.chartPrefillTitle;
@@ -4218,7 +4390,7 @@ async function processOllamaResponse(response, promptLength) {
                 tempContainer.appendChild(prefillTitle);
                 const prefillClone = prefillChartCanvas.cloneNode(true);
                 tempContainer.appendChild(prefillClone);
-                
+
                 // 5. 添加Decode图表标题和canvas
                 const decodeTitle = document.createElement('h3');
                 decodeTitle.textContent = t.chartDecodeTitle;
@@ -4226,13 +4398,13 @@ async function processOllamaResponse(response, promptLength) {
                 tempContainer.appendChild(decodeTitle);
                 const decodeClone = outputChartCanvas.cloneNode(true);
                 tempContainer.appendChild(decodeClone);
-                
+
                 // 6. 将canvas内容绘制到克隆的canvas上
                 const prefillCloneCtx = prefillClone.getContext('2d');
                 prefillCloneCtx.drawImage(prefillChartCanvas, 0, 0);
                 const decodeCloneCtx = decodeClone.getContext('2d');
                 decodeCloneCtx.drawImage(outputChartCanvas, 0, 0);
-                
+
                 // 7. 使用html2canvas截图（降低scale提高速度）
                 const canvas = await html2canvas(tempContainer, {
                     backgroundColor: '#ffffff',
@@ -4240,10 +4412,10 @@ async function processOllamaResponse(response, promptLength) {
                     logging: false,
                     useCORS: true
                 });
-                
+
                 // 8. 清理临时容器
                 document.body.removeChild(tempContainer);
-                
+
                 // 9. 将canvas转换为blob并复制到剪贴板
                 canvas.toBlob(async (blob) => {
                     try {
@@ -5605,7 +5777,7 @@ async function processOllamaResponse(response, promptLength) {
             // 创建备注信息
             const notesMessage = document.createElement('p');
             notesMessage.className = 'notes';
-            notesMessage.textContent = `${t.labelNotesPrefix}${record.notes} | ${t.labelConcurrencyPrefix} ${record.config.concurrency} | ${t.labelTimeoutPrefix} ${record.config.timeout/1000}s`;
+            notesMessage.textContent = `${t.labelNotesPrefix}${record.notes} | ${t.labelConcurrencyPrefix} ${record.config.concurrency} | ${t.labelTimeoutPrefix} ${record.config.timeout / 1000}s`;
             resultsDiv.appendChild(notesMessage);
 
             // 创建表格（限制最大宽度与图表一致）
@@ -5724,7 +5896,7 @@ async function processOllamaResponse(response, promptLength) {
                 .replace(/[<>:"\/\\|?*]/g, '_')
                 .replace(/[\s\t\n\r]+/g, '_')
                 .substring(0, 80);
-            
+
             const cleanNotes = record.notes
                 .replace(/[<>:"\/\\|?*]/g, '_')
                 .replace(/[\s\t\n\r]+/g, '_')
@@ -5908,7 +6080,7 @@ async function processOllamaResponse(response, promptLength) {
 
         // v1.9.1: 重置参数按钮
         const resetParamsBtn = document.getElementById('resetParams');
-        resetParamsBtn.addEventListener('click', function() {
+        resetParamsBtn.addEventListener('click', function () {
             // 只重置测试参数配置，不重置API配置
             document.getElementById('minLength').value = d_minLength;
             document.getElementById('maxLength').value = d_maxLength;
@@ -5933,7 +6105,7 @@ async function processOllamaResponse(response, promptLength) {
 
         // 更新语言切换函数中的按钮文本更新
         const originalSwitchLanguage = switchLanguage;
-        switchLanguage = function(lang) {
+        switchLanguage = function (lang) {
             originalSwitchLanguage(lang);
             // 更新历史记录按钮文本
             const t = translations[lang];
@@ -5949,16 +6121,16 @@ async function processOllamaResponse(response, promptLength) {
                 console.log(`[Init] Backend from window.location: ${host}:${port}`);
                 return { host, port };
             }
-            
+
             // 方法2: 从URL参数获取端口号（bat脚本传递）
             const urlParams = new URLSearchParams(window.location.search);
             let port = urlParams.get('port');
-            
+
             if (port) {
                 console.log(`[Init] Backend port from URL parameter: ${port}`);
                 return { host: 'localhost', port };
             }
-            
+
             // 方法3: 尝试从后端API获取端口
             try {
                 const response = await fetch('http://localhost:18000/api/port');
@@ -5971,24 +6143,610 @@ async function processOllamaResponse(response, promptLength) {
             } catch (e) {
                 console.log('[Init] Failed to fetch port from API:', e);
             }
-            
+
             // 方法4: 使用默认配置
             console.log('[Init] Using default: localhost:18000');
             return { host: 'localhost', port: '18000' };
         }
-        
+
         window.onload = async function () {
             // 加载后端配置
             const { host, port } = await loadBackendConfig();
             const backendUrlInput = document.getElementById('backendUrl');
             backendUrlInput.value = `ws://${host}:${port}`;
-            
+
             setDefaultValues();
             // v1.9: 更新历史记录按钮文本
             const t = translations[currentLang];
             viewHistoryBtn.textContent = t.historyBtn;
         };
     </script>
+
+    <!-- ============================================================
+     云端分享：用户识别码 + 上传弹窗
+     ============================================================ -->
+
+    <!-- 用户识别码 + 昵称悬浮组件 -->
+    <div id="userCodeWidget" style="
+    position: fixed; bottom: 20px; right: 20px; z-index: 9000;
+    background: #2f343a; border: 1px solid #444; border-radius: 10px;
+    padding: 10px 14px; font-size: 12px; color: #abb2bf;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.5); min-width: 200px;">
+        <!-- 昵称行（有昵称时显示） -->
+        <div id="nicknameRow" style="display:none; margin-bottom:5px;">
+            <span style="color:#888; font-size:11px;">用户名：</span>
+            <strong id="nicknameDisplay" style="color:#e5c07b; font-size:13px;"></strong>
+        </div>
+        <!-- 无昵称时显示提示 -->
+        <div id="setNicknameHint" style="display:none; margin-bottom:5px;">
+            <span style="color:#888; font-size:11px;">未设置用户名</span>
+            <button onclick="openNicknameModal()" style="
+            margin-left:6px; background:#2c4a35; border:1px solid #3a6b47; color:#98c379;
+            padding:1px 7px; border-radius:4px; cursor:pointer; font-size:11px;">
+                设置
+            </button>
+        </div>
+        <!-- 识别码行 -->
+        <div>
+            <span style="color:#888;">识别码：</span>
+            <strong id="userCodeDisplay" style="color:#61afef; font-family:monospace; letter-spacing:2px;"></strong>
+            <button onclick="copyUserCode()" title="复制识别码" style="
+            margin-left:6px; background:none; border:none; color:#61afef;
+            cursor:pointer; font-size:13px; padding:0; vertical-align:middle;">⧉</button>
+        </div>
+        <!-- 加载状态 -->
+        <div id="profileLoading" style="color:#666; font-size:11px; margin-top:3px;">正在从云端加载...</div>
+        <!-- 找回识别码入口 -->
+        <div style="margin-top:5px; border-top:1px solid #3a3f47; padding-top:5px;">
+            <button id="cloudRecoverLink" onclick="openRecoverModal()" style="background:none; border:none; color:#666;
+            font-size:11px; cursor:pointer; padding:0; text-decoration:underline;
+            text-underline-offset:2px;">
+                🔑 找回识别码
+            </button>
+        </div>
+    </div>
+
+    <!-- 设置用户名弹窗 -->
+    <div id="nicknameModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.6); z-index:10001; align-items:center; justify-content:center;">
+        <div style="background:#282c34; border:1px solid #444; border-radius:12px;
+        padding:28px; width:400px; max-width:95vw; color:#abb2bf;">
+            <h3 id="cloudSetModalTitle" style="margin:0 0 8px; color:#e5c07b;">🏷 设置用户名</h3>
+            <p id="cloudSetModalDesc" style="margin:0 0 14px; font-size:12px; color:#666;">
+                用户名设置后<strong style="color:#e06c75;">不可更改</strong>，请谨慎选择。
+            </p>
+
+            <div style="margin-bottom:6px;">
+                <label style="display:block; margin-bottom:4px; font-size:12px; color:#888;"><span
+                        id="cloudNickLabel">用户名</span> <span style="color:#e06c75;">*</span></label>
+                <input id="nicknameInput" type="text" maxlength="20" placeholder="2-20位，字母开头，可含数字/下划线/横线"
+                    oninput="onNicknameInput()" style="width:100%; box-sizing:border-box; padding:9px 12px;
+                    border:1px solid #555; border-radius:6px;
+                    background:#1e2227; color:#abb2bf; font-size:14px; font-family:monospace;">
+            </div>
+            <div id="nicknameCheckMsg" style="min-height:18px; font-size:12px; margin-bottom:10px; padding:0 2px;">
+            </div>
+
+            <div style="margin-bottom:6px;">
+                <label style="display:block; margin-bottom:4px; font-size:12px; color:#888;">
+                    <span id="cloudPwdLabel">密码（可选）</span><span id="cloudPwdHint" style="color:#555; font-size:11px;"> —
+                        用于找回识别码</span>
+                </label>
+                <input id="nicknamePassword" type="password" maxlength="72" placeholder="至少6位，丢失后无法找回识别码"
+                    oninput="onPasswordInput()" style="width:100%; box-sizing:border-box; padding:9px 12px;
+                    border:1px solid #555; border-radius:6px;
+                    background:#1e2227; color:#abb2bf; font-size:14px;">
+                <div id="passwordCheckMsg"
+                    style="font-size:11px; margin-top:4px; padding:0 2px; color:#888; min-height:16px;"></div>
+            </div>
+
+            <p id="cloudUsernameRulesText" style="margin:10px 0 14px; font-size:11px; color:#555; line-height:1.6;">
+                以字母开头 · 2~20字符 · 可含字母/数字/下划线/横线 · 全局唯一
+            </p>
+
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button id="cloudCancelSetBtn" onclick="closeNicknameModal()" style="background:#555; border:none; color:#abb2bf;
+                padding:8px 18px; border-radius:6px; cursor:pointer;">取消</button>
+                <button id="confirmNicknameBtn" onclick="confirmSetNickname()" disabled style="
+                background:#b8860b; border:none; color:#fff; padding:8px 18px;
+                border-radius:6px; cursor:not-allowed; font-weight:bold; opacity:0.5;">
+                    确认设置
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 找回识别码弹窗 -->
+    <div id="recoverModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.6); z-index:10001; align-items:center; justify-content:center;">
+        <div style="background:#282c34; border:1px solid #444; border-radius:12px;
+        padding:28px; width:380px; max-width:95vw; color:#abb2bf;">
+            <h3 id="cloudRecoverTitle" style="margin:0 0 8px; color:#61afef;">🔑 找回识别码</h3>
+            <p id="cloudRecoverDesc" style="margin:0 0 14px; font-size:12px; color:#666;">
+                输入你的用户名和密码，找回并恢复识别码。
+            </p>
+            <div style="margin-bottom:10px;">
+                <label id="cloudRecoverNickLbl"
+                    style="display:block; margin-bottom:4px; font-size:12px; color:#888;">用户名</label>
+                <input id="recoverNickname" type="text" maxlength="20" placeholder="你设置的用户名" style="width:100%; box-sizing:border-box; padding:9px 12px;
+                    border:1px solid #555; border-radius:6px;
+                    background:#1e2227; color:#abb2bf; font-size:14px; font-family:monospace;">
+            </div>
+            <div style="margin-bottom:14px;">
+                <label id="cloudRecoverPwdLbl"
+                    style="display:block; margin-bottom:4px; font-size:12px; color:#888;">密码</label>
+                <input id="recoverPassword" type="password" maxlength="72" placeholder="你设置的密码" style="width:100%; box-sizing:border-box; padding:9px 12px;
+                    border:1px solid #555; border-radius:6px;
+                    background:#1e2227; color:#abb2bf; font-size:14px;">
+            </div>
+            <div id="recoverMsg"
+                style="display:none; margin-bottom:12px; padding:8px; border-radius:6px; font-size:13px;"></div>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button id="cloudCancelRecoverBtn" onclick="closeRecoverModal()" style="background:#555; border:none; color:#abb2bf;
+                padding:8px 18px; border-radius:6px; cursor:pointer;">取消</button>
+                <button id="doRecoverBtn" onclick="doRecover()" style="background:#2980b9; border:none;
+                color:#fff; padding:8px 18px; border-radius:6px; cursor:pointer; font-weight:bold;">
+                    找回识别码
+                </button>
+            </div>
+            <p id="cloudRecoverNote" style="margin:10px 0 0; font-size:11px; color:#555;">成功后将覆盖当前识别码并刷新页面。</p>
+        </div>
+    </div>
+
+    <!-- 上传弹窗 -->
+    <div id="shareModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center;">
+        <div style="background:#282c34; border:1px solid #444; border-radius:12px;
+        padding:28px; width:440px; max-width:95vw; color:#abb2bf;">
+            <h3 id="cloudShareModalTitle" style="margin:0 0 16px; color:#61afef;">☁️ 分享测试结果</h3>
+
+            <div style="margin-bottom:12px;">
+                <label style="display:block; margin-bottom:4px; font-size:13px;">
+                    <span id="cloudHwLabel">硬件</span> <span style="color:#e06c75;">*</span>
+                    <span id="cloudHwHint" style="color:#888; font-size:11px;">（如 RTX 4090、M4 Pro）</span>
+                </label>
+                <input id="shareHardware" type="text" maxlength="100" placeholder="必填" style="
+                width:100%; box-sizing:border-box; padding:8px; border:1px solid #555;
+                border-radius:4px; background:#1e2227; color:#abb2bf; font-size:14px;">
+            </div>
+
+            <div style="display:flex; gap:12px; margin-bottom:12px;">
+                <div style="flex:1;">
+                    <label id="cloudFwLabel" style="display:block; margin-bottom:4px; font-size:13px;">推理框架</label>
+                    <input id="shareFramework" type="text" maxlength="50" placeholder="llama.cpp / vllm" style="
+                    width:100%; box-sizing:border-box; padding:8px; border:1px solid #555;
+                    border-radius:4px; background:#1e2227; color:#abb2bf; font-size:14px;">
+                </div>
+                <div style="flex:1;">
+                    <label id="cloudQtLabel" style="display:block; margin-bottom:4px; font-size:13px;">量化方式</label>
+                    <input id="shareQuantization" type="text" maxlength="20" placeholder="Q4_K_M / FP16" style="
+                    width:100%; box-sizing:border-box; padding:8px; border:1px solid #555;
+                    border-radius:4px; background:#1e2227; color:#abb2bf; font-size:14px;">
+                </div>
+            </div>
+
+            <!-- 昵称（只读，从已设置的用户名自动填入） -->
+            <div style="margin-bottom:12px;">
+                <label style="display:block; margin-bottom:4px; font-size:13px;">
+                    显示名称
+                    <span id="nicknameSourceHint" style="color:#888; font-size:11px;"></span>
+                </label>
+                <input id="shareNickname" type="text" maxlength="50" placeholder="（未设置用户名则匿名）" readonly style="width:100%; box-sizing:border-box; padding:8px; border:1px solid #444;
+                border-radius:4px; background:#161a1f; color:#888; font-size:14px; cursor:default;">
+            </div>
+
+            <div style="margin-bottom:20px;">
+                <label style="display:block; margin-bottom:4px; font-size:13px;">备注（可选，200字以内）</label>
+                <textarea id="shareNotes" maxlength="200" rows="2" placeholder="如版本、特殊配置等" style="
+                width:100%; box-sizing:border-box; padding:8px; border:1px solid #555;
+                border-radius:4px; background:#1e2227; color:#abb2bf; font-size:14px;
+                resize:vertical;"></textarea>
+            </div>
+
+            <div id="shareResultMsg" style="display:none; margin-bottom:16px; padding:10px;
+            border-radius:6px; font-size:13px;"></div>
+
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button onclick="closeShareModal()" style="background:#555; border:none; color:#abb2bf;
+                padding:8px 18px; border-radius:6px; cursor:pointer;">取消</button>
+                <button id="doUploadBtn" onclick="doUpload()" style="background:#16a085; border:none;
+                color:#fff; padding:8px 18px; border-radius:6px; cursor:pointer; font-weight:bold;">
+                    📤 上传分享
+                </button>
+            </div>
+
+            <p style="margin:12px 0 0; font-size:11px; color:#666;">
+                识别码 <strong id="shareModalUserCode" style="color:#61afef; font-family:monospace;"></strong>
+                · 上传后数据公开可见，不可删除
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // 云端分享 + 用户名系统
+        // ============================================================
+
+        const USER_CODE_KEY = 'llm_speedtest_user_code';
+        const BACKEND_BASE = '';
+
+        let _cachedNickname = null;  // 已确认的用户名（null=未设置/未加载）
+        let _nicknameCheckTimer = null;
+
+        /** 生成8位随机大写字母+数字识别码（去掉易混淆字符IL0O1） */
+        function generateUserCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = '';
+            for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
+            return code;
+        }
+
+        function getOrCreateUserCode() {
+            let code = localStorage.getItem(USER_CODE_KEY);
+            if (!code || code.length !== 8) {
+                code = generateUserCode();
+                localStorage.setItem(USER_CODE_KEY, code);
+            }
+            return code;
+        }
+
+        function copyUserCode() {
+            navigator.clipboard.writeText(getOrCreateUserCode()).then(() => {
+                const btn = document.querySelector('#userCodeWidget button[onclick="copyUserCode()"]');
+                if (btn) { btn.textContent = '✓'; setTimeout(() => btn.textContent = '⧉', 1500); }
+            });
+        }
+
+        /** 初始化：显示识别码，然后从云端拉取昵称 */
+        async function initUserCode() {
+            const code = getOrCreateUserCode();
+            document.getElementById('userCodeDisplay').textContent = code;
+            document.getElementById('shareModalUserCode').textContent = code;
+
+            try {
+                const resp = await fetch(`${BACKEND_BASE}/api/user-profile?user_code=${code}`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data.found && data.nickname) {
+                        _setNicknameDisplay(data.nickname);
+                    } else {
+                        _showSetNicknameHint();
+                    }
+                } else {
+                    _showSetNicknameHint();
+                }
+            } catch {
+                _showSetNicknameHint();  // 网络异常：允许设置
+            } finally {
+                document.getElementById('profileLoading').style.display = 'none';
+            }
+        }
+
+        function _setNicknameDisplay(nick) {
+            _cachedNickname = nick;
+            document.getElementById('nicknameDisplay').textContent = nick;
+            document.getElementById('nicknameRow').style.display = 'block';
+            document.getElementById('setNicknameHint').style.display = 'none';
+            // 自动填入上传弹窗
+            document.getElementById('shareNickname').value = nick;
+            document.getElementById('nicknameSourceHint').textContent = '（来自已设置的用户名）';
+        }
+
+        function _showSetNicknameHint() {
+            _cachedNickname = null;
+            document.getElementById('nicknameRow').style.display = 'none';
+            document.getElementById('setNicknameHint').style.display = 'block';
+            document.getElementById('shareNickname').value = '';
+            document.getElementById('nicknameSourceHint').textContent = '（未设置用户名）';
+        }
+
+        // ---- 设置用户名弹窗 ----
+
+        function openNicknameModal() {
+            document.getElementById('nicknameInput').value = '';
+            document.getElementById('nicknamePassword').value = '';
+            document.getElementById('nicknameCheckMsg').textContent = '';
+            document.getElementById('passwordCheckMsg').textContent = '';
+            document.getElementById('confirmNicknameBtn').disabled = true;
+            document.getElementById('confirmNicknameBtn').style.opacity = '0.5';
+            document.getElementById('confirmNicknameBtn').style.cursor = 'not-allowed';
+            document.getElementById('nicknameModal').style.display = 'flex';
+            setTimeout(() => document.getElementById('nicknameInput').focus(), 50);
+        }
+
+        function closeNicknameModal() {
+            document.getElementById('nicknameModal').style.display = 'none';
+        }
+
+        /** 实时检查用户名：防抖 600ms 后请求后端 */
+        function onNicknameInput() {
+            clearTimeout(_nicknameCheckTimer);
+            const val = document.getElementById('nicknameInput').value.trim();
+            const msgDiv = document.getElementById('nicknameCheckMsg');
+            const confirmBtn = document.getElementById('confirmNicknameBtn');
+
+            confirmBtn.disabled = true;
+            confirmBtn.style.opacity = '0.5';
+            confirmBtn.style.cursor = 'not-allowed';
+
+            if (!val) { msgDiv.textContent = ''; return; }
+
+            msgDiv.style.color = '#888';
+            msgDiv.textContent = '检查中...';
+
+            _nicknameCheckTimer = setTimeout(async () => {
+                try {
+                    const resp = await fetch(`${BACKEND_BASE}/api/check-nickname?nickname=${encodeURIComponent(val)}`);
+                    const data = await resp.json();
+                    if (data.available) {
+                        msgDiv.style.color = '#98c379';
+                        msgDiv.textContent = '✓ 该用户名可用';
+                        confirmBtn.disabled = false;
+                        confirmBtn.style.opacity = '1';
+                        confirmBtn.style.cursor = 'pointer';
+                        confirmBtn.style.background = '#e5c07b';
+                    } else {
+                        msgDiv.style.color = '#e06c75';
+                        msgDiv.textContent = `✗ ${data.reason}`;
+                    }
+                } catch {
+                    msgDiv.style.color = '#888';
+                    msgDiv.textContent = '无法连接到后端，请确保后端正在运行';
+                }
+            }, 600);
+        }
+
+        /** 密码字段实时验证 */
+        function onPasswordInput() {
+            const val = document.getElementById('nicknamePassword').value;
+            const msgDiv = document.getElementById('passwordCheckMsg');
+            if (!val) { msgDiv.textContent = ''; return; }
+            if (val.length < 6) {
+                msgDiv.style.color = '#e06c75';
+                msgDiv.textContent = '密码至少6位';
+            } else {
+                msgDiv.style.color = '#98c379';
+                msgDiv.textContent = '✓ 密码格式正确';
+            }
+        }
+
+        async function confirmSetNickname() {
+            const nick = document.getElementById('nicknameInput').value.trim();
+            const pwd = document.getElementById('nicknamePassword').value;
+            const msgDiv = document.getElementById('nicknameCheckMsg');
+            const confirmBtn = document.getElementById('confirmNicknameBtn');
+
+            // 密码有输入且太短
+            if (pwd && pwd.length < 6) {
+                document.getElementById('passwordCheckMsg').style.color = '#e06c75';
+                document.getElementById('passwordCheckMsg').textContent = '密码至少6位';
+                return;
+            }
+
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = '设置中...';
+
+            try {
+                const body = { user_code: getOrCreateUserCode(), nickname: nick };
+                if (pwd) body.password = pwd;
+                const resp = await fetch(`${BACKEND_BASE}/api/set-nickname`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await resp.json();
+                if (resp.ok && data.success) {
+                    _setNicknameDisplay(data.nickname);
+                    closeNicknameModal();
+                    const w = document.getElementById('userCodeWidget');
+                    const tip = document.createElement('div');
+                    tip.textContent = pwd ? '✓ 用户名和密码设置成功' : '✓ 用户名设置成功（未设密码，丢失后无法找回）';
+                    tip.style.cssText = 'color:#98c379; font-size:11px; margin-top:4px;';
+                    w.appendChild(tip);
+                    setTimeout(() => tip.remove(), 4000);
+                } else {
+                    msgDiv.style.color = '#e06c75';
+                    msgDiv.textContent = `✗ ${data.detail || '设置失败'}`;
+                    confirmBtn.disabled = false;
+                }
+            } catch {
+                msgDiv.style.color = '#e06c75';
+                msgDiv.textContent = '✗ 网络错误，请重试';
+                confirmBtn.disabled = false;
+            } finally {
+                confirmBtn.textContent = '确认设置';
+            }
+        }
+
+        // ---- 找回识别码 ----
+
+        function openRecoverModal() {
+            document.getElementById('recoverNickname').value = '';
+            document.getElementById('recoverPassword').value = '';
+            document.getElementById('recoverMsg').style.display = 'none';
+            document.getElementById('recoverModal').style.display = 'flex';
+            setTimeout(() => document.getElementById('recoverNickname').focus(), 50);
+        }
+
+        function closeRecoverModal() {
+            document.getElementById('recoverModal').style.display = 'none';
+        }
+
+        async function doRecover() {
+            const nickname = document.getElementById('recoverNickname').value.trim();
+            const password = document.getElementById('recoverPassword').value;
+            const msgDiv = document.getElementById('recoverMsg');
+            const btn = document.getElementById('doRecoverBtn');
+
+            if (!nickname || !password) {
+                msgDiv.style.cssText = 'display:block; background:#3a1515; color:#e06c75; padding:8px; border-radius:6px; font-size:13px;';
+                msgDiv.textContent = '请输入用户名和密码';
+                return;
+            }
+            btn.disabled = true;
+            btn.textContent = '验证中...';
+            msgDiv.style.display = 'none';
+
+            try {
+                const resp = await fetch(`${BACKEND_BASE}/api/recover-user-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nickname, password })
+                });
+                const data = await resp.json();
+                if (resp.ok && data.user_code) {
+                    localStorage.setItem(USER_CODE_KEY, data.user_code);
+                    msgDiv.style.cssText = 'display:block; background:#0d2b1e; color:#98c379; padding:8px; border-radius:6px; font-size:13px;';
+                    msgDiv.textContent = `✅ 找回成功！识别码：${data.user_code}。即将刷新页面…`;
+                    setTimeout(() => location.reload(), 1800);
+                } else {
+                    msgDiv.style.cssText = 'display:block; background:#3a1515; color:#e06c75; padding:8px; border-radius:6px; font-size:13px;';
+                    msgDiv.textContent = `❌ ${data.detail || '验证失败'}`;
+                    btn.disabled = false;
+                }
+            } catch {
+                msgDiv.style.cssText = 'display:block; background:#3a1515; color:#e06c75; padding:8px; border-radius:6px; font-size:13px;';
+                msgDiv.textContent = '❌ 网络错误，请重试';
+                btn.disabled = false;
+            } finally {
+                btn.textContent = '找回识别码';
+            }
+        }
+
+        // ---- 上传弹窗 ----
+
+        function showShareButton() {
+            const btn = document.getElementById('shareResults');
+            if (btn) btn.style.display = '';
+        }
+
+        function openShareModal() {
+            document.getElementById('shareResultMsg').style.display = 'none';
+            document.getElementById('shareModal').style.display = 'flex';
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').style.display = 'none';
+        }
+
+        function buildUploadPayload(hardware, framework, quantization, nickname, notes) {
+            const userCode = getOrCreateUserCode();
+            const validPoints = (window.testResultsData || []).filter(r =>
+                r.prefillSpeed !== 'N/A' && r.outputSpeed !== 'N/A'
+            );
+            if (validPoints.length === 0) return null;
+
+            const avgPrefill = validPoints.reduce((s, r) => s + parseFloat(r.prefillSpeed), 0) / validPoints.length;
+            const avgDecode = validPoints.reduce((s, r) => s + parseFloat(r.outputSpeed), 0) / validPoints.length;
+            const modelName = document.getElementById('modelName')?.value?.trim() || '未知模型';
+            const concurrency = parseInt(document.getElementById('concurrency')?.value) || 1;
+
+            return {
+                user_code: userCode,
+                nickname: nickname || null,
+                model_name: modelName,
+                hardware: hardware,
+                framework: framework || null,
+                quantization: quantization || null,
+                notes: notes || null,
+                concurrency: concurrency,
+                avg_prefill_speed: parseFloat(avgPrefill.toFixed(2)),
+                avg_decode_speed: parseFloat(avgDecode.toFixed(2)),
+                results: validPoints.map(r => ({
+                    prompt_length: parseFloat(r.promptLength),
+                    prefill_speed: parseFloat(r.prefillSpeed),
+                    output_speed: parseFloat(r.outputSpeed),
+                    prefill_time_ms: parseFloat(r.prefillTimeMs) || 0,
+                    output_time_ms: parseFloat(r.outputTimeMs) || 0,
+                    avg_ttft_ms: r.avgTtftMs && r.avgTtftMs !== 'N/A' ? parseFloat(r.avgTtftMs) : null,
+                    avg_itl_mean: r.avgItlMean && r.avgItlMean !== 'N/A' ? parseFloat(r.avgItlMean) : null,
+                    avg_itl_std: r.avgItlStd && r.avgItlStd !== 'N/A' ? parseFloat(r.avgItlStd) : null,
+                    concurrency: parseInt(r.concurrency) || concurrency,
+                    successful: parseInt(r.successful) || 1,
+                    concurrent_details: (r.concurrentDetails || []).map(d => ({
+                        prefill_speed: parseFloat(d.prefill_speed || d.prefillSpeed) || null,
+                        output_speed: parseFloat(d.output_speed || d.outputSpeed) || null,
+                    }))
+                }))
+            };
+        }
+
+        async function doUpload() {
+            const hardware = document.getElementById('shareHardware').value.trim();
+            const framework = document.getElementById('shareFramework').value.trim();
+            const quantization = document.getElementById('shareQuantization').value.trim();
+            const nickname = document.getElementById('shareNickname').value.trim();
+            const notes = document.getElementById('shareNotes').value.trim();
+            const msgDiv = document.getElementById('shareResultMsg');
+            const uploadBtn = document.getElementById('doUploadBtn');
+
+            if (!hardware) {
+                msgDiv.style.cssText = 'display:block; background:#3a1515; color:#e06c75; padding:10px; border-radius:6px; font-size:13px;';
+                msgDiv.textContent = '❌ 请填写硬件信息（必填）';
+                return;
+            }
+            const payload = buildUploadPayload(hardware, framework, quantization, nickname, notes);
+            if (!payload) {
+                msgDiv.style.cssText = 'display:block; background:#3a1515; color:#e06c75; padding:10px; border-radius:6px; font-size:13px;';
+                msgDiv.textContent = '❌ 没有可上传的测试数据，请先完成测试';
+                return;
+            }
+
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = '上传中...';
+            msgDiv.style.display = 'none';
+
+            try {
+                const resp = await fetch(`${BACKEND_BASE}/api/upload`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!resp.ok) {
+                    const err = await resp.json().catch(() => ({ detail: resp.statusText }));
+                    throw new Error(err.detail || `HTTP ${resp.status}`);
+                }
+                const data = await resp.json();
+                const shareId = data.share_id || data.id;
+                msgDiv.style.cssText = 'display:block; background:#0d2b1e; color:#98c379; padding:10px; border-radius:6px; font-size:13px;';
+                msgDiv.innerHTML = `✅ 上传成功！<br>
+            分享ID：<strong style="font-family:monospace; color:#61afef; user-select:all;">${shareId}</strong>
+            <button onclick="navigator.clipboard.writeText('${shareId}')" style="
+                margin-left:8px; background:#16a085; border:none; color:#fff;
+                padding:2px 8px; border-radius:4px; cursor:pointer; font-size:11px;">复制</button><br>
+            <span style="color:#888; font-size:11px;">将此ID分享给他人，即可查看你的完整测试图表</span>`;
+            } catch (e) {
+                msgDiv.style.cssText = 'display:block; background:#3a1515; color:#e06c75; padding:10px; border-radius:6px; font-size:13px;';
+                msgDiv.textContent = `❌ 上传失败：${e.message}`;
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '📤 上传分享';
+            }
+        }
+
+        // ---- 初始化 ----
+        initUserCode();
+        document.getElementById('shareResults').addEventListener('click', openShareModal);
+        document.getElementById('shareModal').addEventListener('click', function (e) {
+            if (e.target === this) closeShareModal();
+        });
+        document.getElementById('nicknameModal').addEventListener('click', function (e) {
+            if (e.target === this) closeNicknameModal();
+        });
+        document.getElementById('recoverModal').addEventListener('click', function (e) {
+            if (e.target === this) closeRecoverModal();
+        });
+        document.getElementById('nicknameInput').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !document.getElementById('confirmNicknameBtn').disabled) {
+                confirmSetNickname();
+            }
+        });
+        document.getElementById('recoverPassword').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') doRecover();
+        });
+        window._onTestComplete = showShareButton;
+    </script>
+
 </body>
 
 </html>

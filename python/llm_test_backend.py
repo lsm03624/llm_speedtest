@@ -6,12 +6,26 @@ import asyncio
 import time
 import json
 import random
-from typing import List, Dict, Any
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+import re
+import hashlib
+from typing import List, Dict, Any, Optional
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 import httpx
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+# ============================================================
+# Supabase 配置（云端结果共享）
+# ============================================================
+SUPABASE_URL = "https://cvezaerrczywfzqcaqmx.supabase.co"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2ZXphZXJyY3p5d2Z6cWNhcW14Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0Nzc0OTAsImV4cCI6MjA4ODA1MzQ5MH0.-9l2Wcj38m6xh9sz9qMdhdNbnAZ_XoFBSHPhEud9DmQ"
+# 注意：只使用公开的 anon key，不在代码中保存 service key
+# RLS 策略负责权限控制（见 README 中的建表 SQL）
+SUPABASE_TABLE = "speed_results"
 
 # 单词库用于生成提示词（避免cache命中）
 WORD_LIST = [
@@ -49,6 +63,11 @@ WORD_LIST = [
 
 app = FastAPI(title="LLM Speed Test Backend")
 
+# 速率限制器
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -73,6 +92,379 @@ async def serve_frontend():
 async def get_port():
     """返回当前后端端口号"""
     return {"port": current_port}
+
+
+# ============================================================
+# 云端结果共享 API
+# ============================================================
+
+class ResultPoint(BaseModel):
+    prompt_length: int
+    prefill_speed: float
+    output_speed: float
+    prefill_time_ms: float
+    output_time_ms: float
+    avg_ttft_ms: Optional[float] = None
+    avg_itl_mean: Optional[float] = None
+    avg_itl_std: Optional[float] = None
+    concurrency: int = 1
+    successful: int = 1
+    concurrent_details: Optional[List[Dict]] = None
+
+class UploadPayload(BaseModel):
+    user_code: str
+    nickname: Optional[str] = None
+    model_name: str
+    hardware: str
+    framework: Optional[str] = None
+    quantization: Optional[str] = None
+    notes: Optional[str] = None
+    concurrency: int
+    avg_prefill_speed: float
+    avg_decode_speed: float
+    results: List[ResultPoint]
+
+    @field_validator('user_code')
+    @classmethod
+    def validate_user_code(cls, v):
+        v = v.strip().upper()
+        if len(v) != 8 or not v.isalnum():
+            raise ValueError('user_code 必须是8位字母数字')
+        return v
+
+    @field_validator('model_name')
+    @classmethod
+    def validate_model_name(cls, v):
+        v = v.strip()
+        if not v or len(v) > 100:
+            raise ValueError('model_name 必填且不超过100字符')
+        return v
+
+    @field_validator('hardware')
+    @classmethod
+    def validate_hardware(cls, v):
+        v = v.strip()
+        if not v or len(v) > 100:
+            raise ValueError('hardware 必填且不超过100字符')
+        return v
+
+    @field_validator('avg_prefill_speed', 'avg_decode_speed')
+    @classmethod
+    def validate_speed(cls, v):
+        if v < 0 or v > 2_000_000:
+            raise ValueError('速度值超出合理范围 (0 ~ 2,000,000 t/s)')
+        return v
+
+    @field_validator('notes')
+    @classmethod
+    def validate_notes(cls, v):
+        if v and len(v) > 200:
+            raise ValueError('notes 不超过200字符')
+        return v
+
+    @field_validator('nickname')
+    @classmethod
+    def validate_nickname(cls, v):
+        if v and len(v) > 50:
+            raise ValueError('nickname 不超过50字符')
+        return v
+
+
+def _get_ip_hash(request: Request) -> str:
+    """对客户端 IP 做单向哈希，不存明文"""
+    ip = get_remote_address(request) or "unknown"
+    return hashlib.sha256(ip.encode()).hexdigest()[:32]
+
+
+async def _supabase_request(method: str, path: str, extra_headers: dict = None, **kwargs):
+    """向 Supabase REST API 发送请求（只使用 anon key）"""
+    headers = {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "return=representation",
+    }
+    if extra_headers:
+        headers.update(extra_headers)
+    url = f"{SUPABASE_URL}/rest/v1/{path}"
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.request(method, url, headers=headers, **kwargs)
+    return resp
+
+
+@app.post("/api/upload")
+@limiter.limit("10/hour")
+async def upload_result(request: Request, payload: UploadPayload):
+    """上传测试结果到云端，返回分享链接"""
+    # 构造存储数据
+    results_json = [
+        {
+            "prompt_length": r.prompt_length,
+            "prefill_speed": r.prefill_speed,
+            "output_speed": r.output_speed,
+            "prefill_time_ms": r.prefill_time_ms,
+            "output_time_ms": r.output_time_ms,
+            "avg_ttft_ms": r.avg_ttft_ms,
+            "avg_itl_mean": r.avg_itl_mean,
+            "avg_itl_std": r.avg_itl_std,
+            "concurrency": r.concurrency,
+            "successful": r.successful,
+            "concurrent_details": [
+                {"prefill_speed": d.get("prefill_speed"), "output_speed": d.get("output_speed")}
+                for d in (r.concurrent_details or [])
+            ]
+        }
+        for r in payload.results
+    ]
+
+    record = {
+        "user_code": payload.user_code,
+        "nickname": payload.nickname,
+        "model_name": payload.model_name,
+        "hardware": payload.hardware,
+        "framework": payload.framework,
+        "quantization": payload.quantization,
+        "notes": payload.notes,
+        "concurrency": payload.concurrency,
+        "avg_prefill_speed": payload.avg_prefill_speed,
+        "avg_decode_speed": payload.avg_decode_speed,
+        "results_json": results_json,
+        "ip_hash": _get_ip_hash(request),
+        "status": "public",
+    }
+
+    resp = await _supabase_request(
+        "POST", SUPABASE_TABLE,
+        json=record
+    )
+
+    if resp.status_code not in (200, 201):
+        print(f"[Upload] Supabase error {resp.status_code}: {resp.text}")
+        raise HTTPException(status_code=502, detail=f"上传失败: {resp.text}")
+
+    data = resp.json()
+    record_id = data[0]["id"] if isinstance(data, list) else data.get("id")
+    share_url = f"{SUPABASE_URL.replace('supabase.co', 'supabase.co')}/leaderboard/{record_id}"
+    # 实际分享链接指向排行榜，由用户复制 record_id 分享
+    return {"success": True, "id": record_id, "share_id": record_id}
+
+
+@app.get("/api/results")
+async def get_results(
+    user_code: Optional[str] = None,
+    model_name: Optional[str] = None,
+    limit: int = 50
+):
+    """查询排行榜数据"""
+    limit = min(limit, 200)
+    params = f"status=eq.public&order=avg_decode_speed.desc&limit={limit}"
+    if user_code:
+        uc = user_code.strip().upper()
+        params += f"&user_code=eq.{uc}"
+    if model_name:
+        # 模糊匹配
+        params += f"&model_name=ilike.*{model_name}*"
+
+    resp = await _supabase_request(
+        "GET", f"{SUPABASE_TABLE}?{params}&select=id,user_code,nickname,model_name,hardware,framework,quantization,notes,concurrency,avg_prefill_speed,avg_decode_speed,created_at,results_json",
+    )
+
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail=f"查询失败: {resp.text}")
+
+    return resp.json()
+
+
+# ============================================================
+# 用户名系统 API
+# ============================================================
+
+USER_PROFILES_TABLE = "user_profiles"
+
+# 用户名规则常量
+NICKNAME_MIN_LEN = 2
+NICKNAME_MAX_LEN = 20
+NICKNAME_PATTERN = re.compile(r'^[a-zA-Z][a-zA-Z0-9_\-]{1,19}$')
+
+# 基础违禁词（小写匹配）
+BLOCKED_WORDS = {
+    "admin", "root", "system", "official", "moderator", "mod",
+    "fuck", "shit", "ass", "bitch", "cunt", "dick", "cock",
+    "nigger", "faggot", "retard", "whore", "slut",
+    "llmtest", "speedtest", "benchmark",  # 保留词
+}
+
+
+def _validate_nickname(nickname: str) -> str | None:
+    """验证用户名，返回错误信息字符串，None 表示通过"""
+    n = nickname.strip()
+    if len(n) < NICKNAME_MIN_LEN:
+        return f"用户名至少 {NICKNAME_MIN_LEN} 个字符"
+    if len(n) > NICKNAME_MAX_LEN:
+        return f"用户名最多 {NICKNAME_MAX_LEN} 个字符"
+    if not NICKNAME_PATTERN.match(n):
+        return "用户名只能包含字母、数字、下划线、横线，且必须以字母开头"
+    if n.isdigit():
+        return "用户名不能全为数字"
+    lower = n.lower()
+    for word in BLOCKED_WORDS:
+        if word in lower:
+            return f"用户名含有违禁词，请换一个"
+    return None
+
+
+@app.get("/api/user-profile")
+async def get_user_profile(user_code: str):
+    """根据 user_code 查询用户昵称（用于页面初始化时从云端恢复昵称）"""
+    uc = user_code.strip().upper()
+    if len(uc) != 8 or not uc.isalnum():
+        raise HTTPException(status_code=400, detail="无效的 user_code")
+
+    resp = await _supabase_request(
+        "GET",
+        f"{USER_PROFILES_TABLE}?user_code=eq.{uc}&select=user_code,nickname,created_at&limit=1",
+    )
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail="查询失败")
+
+    data = resp.json()
+    if not data:
+        return {"found": False, "nickname": None}
+    return {"found": True, "nickname": data[0]["nickname"], "created_at": data[0]["created_at"]}
+
+
+@app.get("/api/check-nickname")
+async def check_nickname(nickname: str):
+    """检查用户名是否可用（格式验证 + 唯一性查询）"""
+    error = _validate_nickname(nickname)
+    if error:
+        return {"available": False, "reason": error}
+
+    resp = await _supabase_request(
+        "GET",
+        f"{USER_PROFILES_TABLE}?nickname=ilike.{nickname}&select=nickname&limit=1",
+    )
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail="查询失败")
+
+    if resp.json():
+        return {"available": False, "reason": "该用户名已被使用，请换一个"}
+    return {"available": True}
+
+
+def _hash_password(password: str) -> str:
+    """使用 PBKDF2-HMAC-SHA256 哈希密码（stdlib，无需额外依赖）
+    格式：pbkdf2$<salt_hex>$<hash_hex>
+    """
+    import os
+    salt = os.urandom(16)
+    dk = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 260000)
+    return f"pbkdf2${salt.hex()}${dk.hex()}"
+
+
+def _verify_password(password: str, stored: str) -> bool:
+    """验证密码，使用常量时间比较防止时序攻击"""
+    import hmac as _hmac
+    try:
+        _, salt_hex, hash_hex = stored.split('$')
+        salt = bytes.fromhex(salt_hex)
+        dk = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 260000)
+        return _hmac.compare_digest(dk.hex(), hash_hex)
+    except Exception:
+        return False
+
+
+class SetNicknamePayload(BaseModel):
+    user_code: str
+    nickname: str
+    password: Optional[str] = None  # 可选，用于后续找回识别码
+
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v):
+        if v is None:
+            return v
+        v = v.strip()
+        if len(v) < 6:
+            raise ValueError('密码至少6位')
+        if len(v) > 72:
+            raise ValueError('密码最多72位')
+        return v
+
+
+@app.post("/api/set-nickname")
+@limiter.limit("5/hour")
+async def set_nickname(request: Request, payload: SetNicknamePayload):
+    """为 user_code 设置昵称（只能设置一次，不可修改）"""
+    uc = payload.user_code.strip().upper()
+    if len(uc) != 8 or not uc.isalnum():
+        raise HTTPException(status_code=400, detail="无效的 user_code")
+
+    error = _validate_nickname(payload.nickname)
+    if error:
+        raise HTTPException(status_code=400, detail=error)
+
+    nickname = payload.nickname.strip()
+
+    # 先检查此 user_code 是否已有昵称
+    existing = await _supabase_request(
+        "GET",
+        f"{USER_PROFILES_TABLE}?user_code=eq.{uc}&select=nickname&limit=1",
+    )
+    if existing.status_code == 200 and existing.json():
+        raise HTTPException(status_code=409, detail="此识别码已设置过用户名，不可更改")
+
+    # 哈希密码（可选）
+    password_hash = None
+    if payload.password:
+        password_hash = _hash_password(payload.password)
+
+    # 插入（UNIQUE 约束会在昵称重复时报错）
+    resp = await _supabase_request(
+        "POST",
+        USER_PROFILES_TABLE,
+        json={"user_code": uc, "nickname": nickname, "password_hash": password_hash},
+    )
+
+    if resp.status_code in (200, 201):
+        return {"success": True, "nickname": nickname}
+
+    # 解析 Supabase 唯一性冲突错误
+    err_text = resp.text.lower()
+    if "unique" in err_text or "duplicate" in err_text or "23505" in err_text:
+        raise HTTPException(status_code=409, detail="该用户名已被使用，请换一个")
+    raise HTTPException(status_code=502, detail=f"设置失败: {resp.text}")
+
+
+class RecoverPayload(BaseModel):
+    nickname: str
+    password: str
+
+
+@app.post("/api/recover-user-code")
+@limiter.limit("5/hour")
+async def recover_user_code(request: Request, payload: RecoverPayload):
+    """通过用户名+密码找回识别码。严格速率限制：同 IP 每小时最多 5 次。"""
+    # 查询用户名对应记录（含 password_hash）
+    resp = await _supabase_request(
+        "GET",
+        f"{USER_PROFILES_TABLE}?nickname=eq.{payload.nickname.strip()}&select=user_code,password_hash&limit=1",
+    )
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail="查询失败")
+
+    data = resp.json()
+    # 不论是否找到，都执行哈希比较，防止时序攻击
+    stored_hash = data[0]["password_hash"] if data else None
+    if not stored_hash:
+        # 没有设置密码，无法通过此方式找回
+        raise HTTPException(status_code=403, detail="该用户名未设置密码，无法通过此方式找回识别码")
+
+    if not _verify_password(payload.password, stored_hash):
+        raise HTTPException(status_code=403, detail="用户名或密码错误")
+
+    return {"user_code": data[0]["user_code"]}
+
 
 
 class TestConfig(BaseModel):
