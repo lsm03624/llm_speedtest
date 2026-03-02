@@ -1147,7 +1147,7 @@
             <button id="shareResults" style="display: none; background: #16a085;">上传测试结果</button>
             <!-- v3: Leaderboard & Batch CSV Upload -->
             <button id="btnLeaderboard" style="background: #f1c40f; color: #333; font-weight: bold;"
-                onclick="window.open('LLM_Speed_Test_v2_Leaderboard.html', '_blank')">🏆 查看排行榜</button>
+                onclick="window.open('LLM_Speed_Test_v3_Leaderboard.html', '_blank')">🏆 查看排行榜</button>
             <button id="btnBatchUpload" style="background: #2980b9;"
                 onclick="document.getElementById('batchCsvInput').click()">📂 上传历史 CSV</button>
             <input type="file" id="batchCsvInput" accept=".csv" style="display:none"
@@ -6657,7 +6657,8 @@ async function processOllamaResponse(response, promptLength) {
         }
 
         function openShareModal(isBatch = false) {
-            isBatchUploadMode = isBatch;
+            // Because this is used as an event listener, isBatch might be a MouseEvent.
+            isBatchUploadMode = isBatch === true;
             document.getElementById('shareResultMsg').style.display = 'none';
 
             // Auto-fill and persistence logic for Share Modal

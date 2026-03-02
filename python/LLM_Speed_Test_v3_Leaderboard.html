@@ -210,8 +210,8 @@
                 搜索结果</button>
 
             <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
-                <input type="text" id="searchInput" placeholder="搜索 用户名/模型名/分享ID"
-                    style="padding:4px 8px; border-radius:4px; border:1px solid var(--border-color); background:var(--bg-panel); color:var(--text-color); font-size:13px; width:250px;"
+                <input type="text" id="searchInput" placeholder="搜索 识别码/用户/模型/ID"
+                    style="padding:4px 8px; border-radius:4px; border:1px solid var(--border-color); background:var(--bg-panel); color:var(--text-main); font-size:13px; width:220px;"
                     onkeydown="if(event.key==='Enter') searchUnified()">
                 <button class="tab-btn" onclick="searchUnified()" style="margin:0; padding:4px 10px;">🔍 搜索</button>
             </div>
@@ -389,8 +389,8 @@
                         String(d.getSeconds()).padStart(2, '0');
 
                     // Format user display - Clickable to search
-                    const displayName = row.nickname ? escapeHtml(row.nickname) : '匿名';
-                    const userDisplay = `<span style="color:#e5c07b; cursor:pointer; text-decoration:underline;" onclick="loadUserLeaderboard('${escapeHtml(row.user_code)}')" title="点击查看该用户的所有记录">${displayName}</span>`;
+                    const displayName = row.nickname ? escapeHtml(row.nickname) : escapeHtml(row.user_code);
+                    const userDisplay = `<span style="color:#e5c07b; cursor:pointer; text-decoration:underline;" onclick="loadUserLeaderboard('${escapeHtml(row.user_code)}', '${displayName}')" title="点击查看该用户的所有记录">${displayName}</span>`;
 
                     const modelDisplay = `<span style="color:#61afef; cursor:pointer; text-decoration:underline;" onclick="loadModelLeaderboard('${escapeHtml(row.model_name)}')" title="点击查看所有同名模型记录">${escapeHtml(row.model_name)}</span>`;
 
@@ -442,9 +442,11 @@
                 .replace(/'/g, "&#039;");
         }
 
-        function loadUserLeaderboard(userCode) {
+        function loadUserLeaderboard(userCode, displayName) {
             currentTargetUserCode = userCode;
-            document.getElementById('tabUser').style.display = 'inline-block';
+            const tabUser = document.getElementById('tabUser');
+            tabUser.textContent = `🔍 [${displayName || userCode}] 的记录`;
+            tabUser.style.display = 'inline-block';
             loadLeaderboard('user');
         }
 
