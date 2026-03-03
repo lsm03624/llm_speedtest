@@ -13,8 +13,8 @@
 This project is a powerful local large language model (LLM) inference performance testing tool designed to help users quickly and conveniently test the Prefill (prompt processing) and Decode (token generation/output) performance of various locally deployed LLM inference services.
 
 **Two versions available:**
-- **Browser Version** (v2.2): Runs offline directly in browser with no server deployment needed, ensuring data privacy and testing convenience
-- **Python Backend Version** (v3): Uses Python backend to send requests, breaking through browser's 6-connection limit, supporting true high concurrency testing (50+ concurrent) and uploading results to cloud leaderboards
+- **Browser Version** (v3 Latest): Runs directly in browser with no backend deployment needed. It now supports Supabase cloud connection to upload test results to the global leaderboard, generates shareable records, and allows batch CSV uploading natively.
+- **Python Backend Version** (v3): Uses Python backend to send requests, breaking through browser's 6-connection limit, supporting true high concurrency testing (50+ concurrent) while also supporting complete cloud leaderboards.
 
 This tool is a modified version based on the original work by "Zhiyuan Suifeng" (Bilibili/DeepSeek-R1-0528), adding practical features and optimizations including retry mechanism, automatic chart display, Prefill/Decode speed separation, concurrency fixes, request timeout control, auto-save configuration, concurrent throughput fixes, and token source tracking.
 
@@ -38,8 +38,7 @@ This tool is a modified version based on the original work by "Zhiyuan Suifeng" 
 >
 > #### ⚠️ Browser Version Limitations
 > - Concurrency Limit: Maximum 6 concurrent (browser restriction)
-> - Feature Updates: Slower maintenance, new features delayed
-> - Test Accuracy: More affected by browser environment
+> - Test Accuracy: Execution limits and network scheduling under peak concurrency in browser environment
 >
 > **📖 Quick Start:** [Python Backend Complete Documentation](python/README_Backend.md)
 >
@@ -54,11 +53,11 @@ This tool is a modified version based on the original work by "Zhiyuan Suifeng" 
 
 <!-- Please note, the following changelog starts from v1.7. -->
 
-### v3 (Python Backend Major Update)
-*   **🏆 Leaderboard System**: Support uploading test results to the cloud, generating exclusive sharing links and chart views
-*   **🌎 Global & Personal Records**: Quickly view the latest evaluation data from various GPUs and frameworks
-*   **📂 Batch CSV Cloud Upload**: Support merging and uploading historical CSV evaluations to the leaderboard all at once
-*   **🛡️ New Identity & Anti-Spam Mechanics**: Powered by Supabase for security, rate limiting (100 times/day), and stable storage
+### v3 (Frontend & Backend Cloud Synchronization)
+*   **🏆 Leaderboard System**: Both the browser frontend version and Python backend version now support uploading test results to the cloud, generating exclusive sharing links and chart views.
+*   **🌎 Global & Personal Records**: Quickly view the latest evaluation data from various GPUs and frameworks. No Python deployment required for the frontend version!
+*   **📂 Batch CSV Cloud Upload**: Support merging and uploading historical CSV evaluations to the leaderboard all at once directly from the browser.
+*   **🛡️ New Identity & Anti-Spam Mechanics**: Powered by Supabase for security, rate limiting (100 times/day), and stable storage with direct frontend connections.
 
 ### v2.2 (Chao Enhanced Modded Version - Browser Version Feature Sync)
 *   **🌐 Chart Title Internationalization**: Fixed all chart title translation issues, supports dynamic Chinese/English switching, Y-axis labels fully translated
