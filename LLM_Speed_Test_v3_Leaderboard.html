@@ -426,9 +426,18 @@
                 } else if (mode === 'model' && currentTargetModelName) {
                     filters = `&model_name=eq.${encodeURIComponent(currentTargetModelName)}`;
                 } else if (mode === 'search_id' && currentTargetSearch) {
-                    const q = encodeURIComponent(currentTargetSearch);
-                    // Search by id prefix, user_code, nickname, or model_name substring
-                    filters = `&or=(id.eq.${q},user_code.eq.${q},nickname.ilike.*${q}*,model_name.ilike.*${q}*)`;
+                    const q = currentTargetSearch.trim();
+                    // UUID regex: 8-4-4-4-12 hex chars
+                    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(q);
+                    if (isUUID) {
+                        // Exact match by record ID
+                        filters = '&id=eq.' + q;
+                    } else {
+                        // 8-char user_code exact match OR nickname/model_name substring
+                        const eq = encodeURIComponent(q);
+                        const like = encodeURIComponent('%' + q + '%');
+                        filters = '&or=(user_code.eq.' + eq + ',nickname.ilike.' + like + ',model_name.ilike.' + like + ')';
+                    }
                 }
 
                 const url = `${sbBase}?${select}&${order}&${range}${filters}`;
