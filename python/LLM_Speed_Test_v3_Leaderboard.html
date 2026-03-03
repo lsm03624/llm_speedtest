@@ -227,6 +227,7 @@
                         <th>用户</th>
                         <th>模型</th>
                         <th>硬件 / 框架 / 量化</th>
+                        <th>备注</th>
                         <th>并发</th>
                         <th>Prefill 速度<br>(tokens/s)</th>
                         <th>Decode 速度<br>(tokens/s)</th>
@@ -396,6 +397,7 @@
 
                     // Config text
                     const configText = [row.hardware, row.framework, row.quantization].filter(Boolean).map(escapeHtml).join(' / ');
+                    const notesText = row.notes ? escapeHtml(row.notes) : '-';
 
                     tr.innerHTML = `
                     <td>${dateStr}</td>
@@ -403,6 +405,7 @@
                     <td>${userDisplay}</td>
                     <td style="font-weight:bold;">${modelDisplay}</td>
                     <td style="font-size:12px;">${configText}</td>
+                    <td style="font-size:12px; color:var(--text-muted); max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${notesText}">${notesText}</td>
                     <td>${row.concurrency}</td>
                     <td style="color:#98c379; font-weight:bold;">${row.avg_prefill_speed.toFixed(1)}</td>
                     <td style="color:#c678dd; font-weight:bold;">${row.avg_decode_speed.toFixed(1)}</td>
