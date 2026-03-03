@@ -3725,6 +3725,9 @@
 
             //
             const wasManuallyStopped = !isTestingRunning;
+            if (typeof window._onTestComplete === 'function') {
+                window._onTestComplete();
+            }
 
             // 无论测试是完成还是被手动停止，只要有数据就显示统计
             let statsData = null;
