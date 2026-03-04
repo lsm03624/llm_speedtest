@@ -2,6 +2,11 @@
 
 ## 简介
 
+✨ **在线体验最新纯前端版（无需下载/部署，点开即用）：**
+👉 [**https://gengchaogit.github.io/llm_speedtest/**](https://gengchaogit.github.io/llm_speedtest/)
+
+---
+
 Python后端版本通过Python FastAPI后端发起HTTP请求，突破浏览器6并发限制，支持真正的高并发测试（50+并发）。
 
 ## 与浏览器版本对比

@@ -8,6 +8,11 @@
 
 ---
 
+✨ **在线体验最新纯前端版（无需下载/部署，点开即用）：**
+👉 [**https://gengchaogit.github.io/llm_speedtest/**](https://gengchaogit.github.io/llm_speedtest/)
+
+---
+
 ## 简介
 
 本项目是一个功能强大的本地大模型推理性能测试工具，旨在帮助用户快速、便捷地测试本地部署的各种大模型推理服务的 Prefill（预填充）和 Decode（解码/输出）性能。

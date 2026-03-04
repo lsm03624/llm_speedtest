@@ -8,6 +8,11 @@
 
 ---
 
+✨ **Experience the latest frontend-only version online (No download/deployment required, use instantly):**
+👉 [**https://gengchaogit.github.io/llm_speedtest/**](https://gengchaogit.github.io/llm_speedtest/)
+
+---
+
 ## Introduction
 
 This project is a powerful local large language model (LLM) inference performance testing tool designed to help users quickly and conveniently test the Prefill (prompt processing) and Decode (token generation/output) performance of various locally deployed LLM inference services.
