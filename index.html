@@ -2016,17 +2016,30 @@
             }
         });
 
-        // 绑定事件（input + paste 均触发）
-        document.addEventListener('DOMContentLoaded', () => { }, false); // 确保DOM已加载
-        (function bindModelSuggest() {
-            const modelInput = document.getElementById('modelName');
-            if (!modelInput) return;
-            modelInput.addEventListener('input', (e) => refreshModelDatalist(e.target.value));
-            modelInput.addEventListener('paste', (e) => {
-                // paste 事件触发时 value 还没更新，setTimeout 让其生效后再触发
-                setTimeout(() => refreshModelDatalist(modelInput.value), 50);
-            });
-        })();
+        // 绑定事件（使用事件委托，避免弹窗DOM晚于script执行导致getElementById返回null）
+        function _modelSuggestHandler(e) {
+            const id = e.target && e.target.id;
+            if (!_modelNameCache || _modelNameCache.length === 0) return;
+            if (id === 'modelName') {
+                refreshModelDatalist(e.target.value);
+            } else if (id === 'shareModelName') {
+                const dl = document.getElementById('modelSuggestModal');
+                if (!dl) return;
+                const q = (e.target.value || '').toLowerCase().trim();
+                if (!q) { dl.innerHTML = ''; return; }
+                const matches = _modelNameCache.filter(name => name.toLowerCase().includes(q)).slice(0, 30);
+                dl.innerHTML = matches.map(m => `<option value="${m}"></option>`).join('');
+            }
+        }
+        // input 事件（打字）
+        document.addEventListener('input', _modelSuggestHandler, true);
+        // paste 事件：value 在事件时机还没更新，延迟一帧再手动触发 input
+        document.addEventListener('paste', (e) => {
+            const id = e.target && e.target.id;
+            if (id === 'modelName' || id === 'shareModelName') {
+                setTimeout(() => e.target.dispatchEvent(new Event('input', { bubbles: true })), 50);
+            }
+        }, true);
         let concurrencyStats = {
             minPrefillSpeed: Infinity,
             maxPrefillSpeed: 0,
@@ -5268,8 +5281,9 @@
             <h3 style="margin:0 0 16px;color:#61afef;">☁️ 分享测试结果</h3>
             <div style="margin-bottom:12px;"><label
                     style="display:block;margin-bottom:4px;font-size:13px;">模型名称</label><input id="shareModelName"
-                    type="text" maxlength="100" placeholder="自动获取或手动修改"
+                    type="text" maxlength="100" placeholder="自动获取或手动修改" list="modelSuggestModal" autocomplete="off"
                     style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #555;border-radius:4px;background:#1e2227;color:#abb2bf;font-size:14px;">
+                <datalist id="modelSuggestModal"></datalist>
             </div>
             <div style="margin-bottom:12px;"><label style="display:block;margin-bottom:4px;font-size:13px;">硬件 <span
                         style="color:#e06c75;">*</span><span style="color:#888;font-size:11px;">（如 RTX 4090、M4
@@ -5463,8 +5477,14 @@
                 if (fw) fw.value = localStorage.getItem('llm_speedtest_share_fw') || '';
                 if (qt) qt.value = localStorage.getItem('llm_speedtest_share_qt') || '';
                 const mn = document.getElementById('shareModelName'), sn = document.getElementById('shareNotes');
-                if (_batchMode) { if (mn) mn.value = ''; if (sn) sn.value = ''; }
-                else { if (mn) mn.value = localStorage.getItem('llm_speedtest_share_model') || document.getElementById('modelName')?.value?.trim() || ''; if (sn) sn.value = document.getElementById('notes')?.value?.trim() || ''; }
+                if (_batchMode) {
+                    // 批量CSV模式：从第一个解析好的记录里预填充模型名，方便用户确认/修改，且让联想立即可用
+                    if (mn) { mn.value = (_batchPayloads[0] && _batchPayloads[0].model) ? _batchPayloads[0].model : ''; mn.dispatchEvent(new Event('input')); }
+                    if (sn) sn.value = '';
+                } else {
+                    if (mn) mn.value = localStorage.getItem('llm_speedtest_share_model') || document.getElementById('modelName')?.value?.trim() || '';
+                    if (sn) sn.value = document.getElementById('notes')?.value?.trim() || '';
+                }
                 document.getElementById('shareModal').style.display = 'flex';
             };
             window.closeShareModal = function () { document.getElementById('shareModal').style.display = 'none'; _batchMode = false; _batchPayloads = []; };
