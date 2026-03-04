@@ -5297,11 +5297,103 @@
             <div style="display:flex;gap:12px;margin-bottom:12px;">
                 <div style="flex:1;"><label style="display:block;margin-bottom:4px;font-size:13px;">推理框架</label><input
                         id="shareFramework" type="text" maxlength="50" placeholder="llama.cpp / vllm"
+                        list="frameworkSuggest" autocomplete="off"
                         style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #555;border-radius:4px;background:#1e2227;color:#abb2bf;font-size:14px;">
+                    <datalist id="frameworkSuggest">
+                        <!-- 本地推理框架 -->
+                        <option value="llama.cpp">
+                        <option value="llama-server">
+                        <option value="Ollama">
+                        <option value="LM Studio">
+                        <option value="Jan">
+                        <option value="vLLM">
+                        <option value="SGLang">
+                        <option value="TGI (Text Generation Inference)">
+                        <option value="KTransformers">
+                        <option value="ExLlamaV2">
+                        <option value="MLC-LLM">
+                        <option value="ftllm">
+                        <option value="Xinference">
+                        <option value="LocalAI">
+                        <option value="GPT4All">
+                            <!-- 云API -->
+                        <option value="API (OpenAI)">
+                        <option value="API (Gemini)">
+                        <option value="API (Claude / Anthropic)">
+                        <option value="API (DeepSeek)">
+                        <option value="API (Qwen / 阿里云)">
+                        <option value="API (Doubao / 字节跳动)">
+                        <option value="API (Kimi / 月之暗面)">
+                        <option value="API (智谱 GLM)">
+                        <option value="API (百度文心)">
+                        <option value="API (Grok / xAI)">
+                        <option value="API (Mistral)">
+                        <option value="API (Cohere)">
+                        <option value="API (Groq)">
+                        <option value="API (Together AI)">
+                        <option value="API (Fireworks AI)">
+                        <option value="API (OpenRouter)">
+                        <option value="API (其他云服务)">
+                    </datalist>
                 </div>
                 <div style="flex:1;"><label style="display:block;margin-bottom:4px;font-size:13px;">量化方式</label><input
                         id="shareQuantization" type="text" maxlength="20" placeholder="Q4_K_M / FP16"
+                        list="quantizationSuggest" autocomplete="off"
                         style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #555;border-radius:4px;background:#1e2227;color:#abb2bf;font-size:14px;">
+                    <datalist id="quantizationSuggest">
+                        <!-- 浮点及新型格式 -->
+                        <option value="FP32">
+                        <option value="BF16">
+                        <option value="FP16">
+                        <option value="FP8">
+                        <option value="INT8">
+                        <option value="INT4">
+                        <option value="NV-FP4">
+                        <option value="FP6">
+                            <!-- GGUF (llama.cpp) -->
+                        <option value="Q8_0">
+                        <option value="Q6_K">
+                        <option value="Q5_K_M">
+                        <option value="Q5_K_S">
+                        <option value="Q4_K_M">
+                        <option value="Q4_K_S">
+                        <option value="Q4_0">
+                        <option value="Q3_K_L">
+                        <option value="Q3_K_M">
+                        <option value="Q3_K_S">
+                        <option value="Q2_K">
+                        <option value="IQ4_XS">
+                        <option value="IQ4_NL">
+                        <option value="IQ3_M">
+                        <option value="IQ3_XS">
+                        <option value="IQ2_M">
+                        <option value="IQ2_XS">
+                        <option value="IQ1_M">
+                        <option value="IQ1_S">
+                            <!-- GPTQ -->
+                        <option value="GPTQ-2bit">
+                        <option value="GPTQ-3bit">
+                        <option value="GPTQ-4bit">
+                        <option value="GPTQ-8bit">
+                            <!-- AWQ (AutoAWQ) -->
+                        <option value="AWQ-2bit">
+                        <option value="AWQ-3bit">
+                        <option value="AWQ-4bit">
+                        <option value="AWQ-4bit-g32">
+                        <option value="AWQ-4bit-g64">
+                        <option value="AWQ-4bit-g128">
+                        <option value="AWQ-8bit">
+                            <!-- EXL2 (ExLlamaV2) -->
+                        <option value="EXL2-2.0bpw">
+                        <option value="EXL2-2.4bpw">
+                        <option value="EXL2-3.0bpw">
+                        <option value="EXL2-3.5bpw">
+                        <option value="EXL2-4.0bpw">
+                        <option value="EXL2-4.25bpw">
+                        <option value="EXL2-5.0bpw">
+                        <option value="EXL2-6.0bpw">
+                        <option value="EXL2-8.0bpw">
+                    </datalist>
                 </div>
             </div>
             <div style="margin-bottom:12px;"><label style="display:block;margin-bottom:4px;font-size:13px;">显示名称<span
