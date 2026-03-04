@@ -2003,7 +2003,9 @@
             if (!q) { dl.innerHTML = ''; return; }
             const matches = _modelNameCache
                 .filter(name => name.toLowerCase().includes(q))
-                .slice(0, 30); // 最多显示30条
+                .slice(0, 30);
+            // 如果只有一个匹配且完全等于当前输入，说明用户已选中，清空避免重复弹出
+            if (matches.length === 1 && matches[0].toLowerCase() === q) { dl.innerHTML = ''; return; }
             dl.innerHTML = matches.map(m => `<option value="${m}"></option>`).join('');
         }
 
@@ -2028,6 +2030,8 @@
                 const q = (e.target.value || '').toLowerCase().trim();
                 if (!q) { dl.innerHTML = ''; return; }
                 const matches = _modelNameCache.filter(name => name.toLowerCase().includes(q)).slice(0, 30);
+                // 如果只有一个匹配且完全等于当前输入，清空避免重复弹出
+                if (matches.length === 1 && matches[0].toLowerCase() === q) { dl.innerHTML = ''; return; }
                 dl.innerHTML = matches.map(m => `<option value="${m}"></option>`).join('');
             }
         }
