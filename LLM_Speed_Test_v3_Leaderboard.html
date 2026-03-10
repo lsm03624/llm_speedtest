@@ -339,6 +339,7 @@
         const PAGE_SIZE = 100;
         let resultsDataMap = {}; // store details for chart generation
         let currentFetchController = null; // To prevent race conditions on tab switch
+        let pendingDeepLinkShareId = null;
 
         // Chart instances
         let charts = {
@@ -348,7 +349,21 @@
             itl: null
         };
 
+        function getShareIdFromUrl() {
+            const params = new URLSearchParams(window.location.search || '');
+            return (params.get('id') || params.get('share_id') || params.get('shareId') || '').trim();
+        }
+
         window.onload = () => {
+            const shareId = getShareIdFromUrl();
+            if (shareId) {
+                pendingDeepLinkShareId = shareId;
+                currentTargetSearch = shareId;
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) searchInput.value = shareId;
+                loadLeaderboard('search_id');
+                return;
+            }
             loadLeaderboard('global');
         };
 
@@ -499,6 +514,12 @@
                 `;
                     tbody.appendChild(tr);
                 });
+
+                if (mode === 'search_id' && pendingDeepLinkShareId) {
+                    const matched = data.find(row => row.id === pendingDeepLinkShareId);
+                    pendingDeepLinkShareId = null;
+                    if (matched) viewDetails(matched.id);
+                }
 
                 loading.style.display = 'none';
                 table.style.display = 'table';
