@@ -5491,6 +5491,20 @@
             const USER_CODE_KEY = 'llm_speedtest_user_code';
             let _nick = null, _nickTimer = null;
             let _batchMode = false, _batchPayloads = [];
+            const PUBLIC_LEADERBOARD_URL = 'https://gengchaogit.github.io/llm_speedtest/LLM_Speed_Test_v3_Leaderboard.html';
+
+            function _buildShareReportUrl(shareId) {
+                if (!shareId) return '';
+                const url = new URL(PUBLIC_LEADERBOARD_URL);
+                url.searchParams.set('id', shareId);
+                return url.toString();
+            }
+
+            function _buildShareLinkBlock(shareUrl, label) {
+                if (!shareUrl) return '';
+                const shareUrlLiteral = JSON.stringify(shareUrl);
+                return `<br>${label}：<a href="${shareUrl}" target="_blank" rel="noopener" style="color:#61afef;word-break:break-all;">${shareUrl}</a> <button onclick='navigator.clipboard.writeText(${shareUrlLiteral})' style="background:#16a085;border:none;color:#fff;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;">复制链接</button>`;
+            }
 
             function generateUserCode() {
                 const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -5676,9 +5690,11 @@
                     const r = await _sbInsert(payload);
                     if (!r.ok) { const err = await r.json().catch(() => ({ message: r.statusText })); throw new Error(err.message || 'HTTP ' + r.status); }
                     const data = await r.json(); const shareId = (Array.isArray(data) ? data[0] : data)?.id;
+                    const shareUrl = _buildShareReportUrl(shareId);
                     if (msgDiv) {
+                        const shareIdLiteral = JSON.stringify(String(shareId || ''));
                         msgDiv.style.cssText = 'display:block;background:#0d2b1e;color:#98c379;padding:10px;border-radius:6px;font-size:13px;';
-                        msgDiv.innerHTML = `✅ 上传成功！<br>分享ID：<strong style="font-family:monospace;color:#61afef;">${shareId}</strong> <button onclick="navigator.clipboard.writeText('${shareId}')" style="background:#16a085;border:none;color:#fff;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;">复制</button>`;
+                        msgDiv.innerHTML = `✅ 上传成功！<br>分享ID：<strong style="font-family:monospace;color:#61afef;">${shareId || '-'}</strong> <button onclick='navigator.clipboard.writeText(${shareIdLiteral})' style="background:#16a085;border:none;color:#fff;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;">复制ID</button>${_buildShareLinkBlock(shareUrl, '报告链接')}`;
                     }
                 } catch (e) { if (msgDiv) { msgDiv.style.cssText = 'display:block;background:#3a1515;color:#e06c75;padding:10px;border-radius:6px;font-size:13px;'; msgDiv.textContent = '❌ 上传失败：' + e.message; } }
                 finally { if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.textContent = '📤 上传分享'; } }
@@ -5688,14 +5704,24 @@
                 const userCode = getOrCreateUserCode();
                 const msgDiv = document.getElementById('shareResultMsg'), uploadBtn = document.getElementById('doUploadBtn');
                 let ok = 0, fail = 0, lastErr = '';
+                let firstShareUrl = '';
                 for (const bd of _batchPayloads) {
                     const payload = { user_code: userCode, nickname: nickname || null, model_name: modelName || bd.model || '未知模型', hardware: hw, framework: fw || null, quantization: qt || null, notes: notes || bd.notes || null, concurrency: bd.concurrency, avg_prefill_speed: bd.maxPrefill, avg_decode_speed: bd.maxDecode, results_json: JSON.stringify(bd.points) };
-                    try { const r = await _sbInsert(payload); if (r.ok || r.status === 201) ok++; else { const err = await r.json().catch(() => ({ message: r.statusText })); throw new Error(err.message); } }
+                    try {
+                        const r = await _sbInsert(payload);
+                        if (r.ok || r.status === 201) {
+                            ok++;
+                            const data = await r.json().catch(() => null);
+                            const shareId = (Array.isArray(data) ? data[0] : data)?.id;
+                            if (!firstShareUrl && shareId) firstShareUrl = _buildShareReportUrl(shareId);
+                        } else { const err = await r.json().catch(() => ({ message: r.statusText })); throw new Error(err.message); }
+                    }
                     catch (e) { fail++; lastErr = e.message; }
                 }
                 if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.textContent = t.cloudUploadBtn || '📤 上传分享'; }
-                if (!fail) { if (msgDiv) { msgDiv.style.cssText = 'display:block;background:#0d2b1e;color:#98c379;padding:10px;border-radius:6px;font-size:13px;'; msgDiv.innerHTML = (t.batchUploadSuccess || '✅ 批量上传成功！共上传 {count} 个测试记录。').replace('{count}', ok); } }
-                else { if (msgDiv) { msgDiv.style.cssText = 'display:block;background:#3a1515;color:#e06c75;padding:10px;border-radius:6px;font-size:13px;'; msgDiv.innerHTML = (t.batchUploadResult || '⚠️ 上传结束。成功: {success}，失败: {fail}。<br>最后错误: {error}').replace('{success}', ok).replace('{fail}', fail).replace('{error}', lastErr); } }
+                const batchLinkBlock = _buildShareLinkBlock(firstShareUrl, ok > 1 ? '示例报告链接（第一条）' : '报告链接');
+                if (!fail) { if (msgDiv) { msgDiv.style.cssText = 'display:block;background:#0d2b1e;color:#98c379;padding:10px;border-radius:6px;font-size:13px;'; msgDiv.innerHTML = (t.batchUploadSuccess || '✅ 批量上传成功！共上传 {count} 个测试记录。').replace('{count}', ok) + batchLinkBlock; } }
+                else { if (msgDiv) { msgDiv.style.cssText = 'display:block;background:#3a1515;color:#e06c75;padding:10px;border-radius:6px;font-size:13px;'; msgDiv.innerHTML = (t.batchUploadResult || '⚠️ 上传结束。成功: {success}，失败: {fail}。<br>最后错误: {error}').replace('{success}', ok).replace('{fail}', fail).replace('{error}', lastErr) + (ok > 0 ? batchLinkBlock : ''); } }
                 _batchPayloads = [];
             }
             window.handleBatchCsvUpload = async function (event) {
