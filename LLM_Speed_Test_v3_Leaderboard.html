@@ -423,20 +423,7 @@
         }
 
         async function fetchLeaderboardRows(mode, offset, signal, personalUserCode) {
-            const forced = getForcedDataSource();
-            if (forced) {
-                return await fetchRowsBySource(forced, mode, offset, signal, personalUserCode);
-            }
-
-            const preferred = getDefaultDataSource();
-            const fallback = preferred === 'backend' ? 'supabase' : 'backend';
-            try {
-                return await fetchRowsBySource(preferred, mode, offset, signal, personalUserCode);
-            } catch (e) {
-                if (e.name === 'AbortError') throw e;
-                console.warn(`Data source ${preferred} failed, fallback to ${fallback}:`, e);
-                return await fetchRowsBySource(fallback, mode, offset, signal, personalUserCode);
-            }
+            return await fetchRowsBySource('supabase', mode, offset, signal, personalUserCode);
         }
 
         function normalizeLeaderboardRows(data) {
