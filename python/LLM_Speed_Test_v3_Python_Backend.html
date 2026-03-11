@@ -6739,6 +6739,8 @@ async function processOllamaResponse(response, promptLength) {
 
             const maxPrefill = validPoints.reduce((max, r) => Math.max(max, parseFloat(r.prefillSpeed)), 0);
             const maxDecode = validPoints.reduce((max, r) => Math.max(max, parseFloat(r.outputSpeed)), 0);
+            const avgPrefill = validPoints.reduce((sum, r) => sum + parseFloat(r.prefillSpeed), 0) / validPoints.length;
+            const avgDecode = validPoints.reduce((sum, r) => sum + parseFloat(r.outputSpeed), 0) / validPoints.length;
             const modelName = document.getElementById('shareModelName')?.value?.trim() || '未知模型';
             const concurrency = parseInt(document.getElementById('concurrency')?.value) || 1;
 
@@ -6751,8 +6753,12 @@ async function processOllamaResponse(response, promptLength) {
                 quantization: quantization || null,
                 notes: notes || null,
                 concurrency: concurrency,
-                avg_prefill_speed: parseFloat(maxPrefill.toFixed(2)),
-                avg_decode_speed: parseFloat(maxDecode.toFixed(2)),
+                avg_prefill_speed: parseFloat(avgPrefill.toFixed(2)),
+                avg_decode_speed: parseFloat(avgDecode.toFixed(2)),
+                max_prefill_speed: parseFloat(maxPrefill.toFixed(2)),
+                max_decode_speed: parseFloat(maxDecode.toFixed(2)),
+                source: 'python_backend',
+                record_tags: ['source:python_backend'],
                 results: validPoints.map(r => ({
                     prompt_length: parseFloat(r.promptLength),
                     prefill_speed: parseFloat(r.prefillSpeed),
@@ -6868,8 +6874,12 @@ async function processOllamaResponse(response, promptLength) {
                     quantization: qt || null,
                     notes: generalNotes || batchData.temp_notes || null,
                     concurrency: batchData.concurrency,
-                    avg_prefill_speed: batchData.avg_prefill_speed,
-                    avg_decode_speed: batchData.avg_decode_speed,
+                    avg_prefill_speed: batchData.avg_prefill_speed ?? batchData.max_prefill_speed,
+                    avg_decode_speed: batchData.avg_decode_speed ?? batchData.max_decode_speed,
+                    max_prefill_speed: batchData.max_prefill_speed ?? batchData.avg_prefill_speed,
+                    max_decode_speed: batchData.max_decode_speed ?? batchData.avg_decode_speed,
+                    source: 'python_backend',
+                    record_tags: batchData.record_tags || ['source:python_backend'],
                     results: batchData.results
                 };
 
@@ -7032,13 +7042,19 @@ async function processOllamaResponse(response, promptLength) {
 
                     const maxPrefill = validPoints.reduce((max, r) => Math.max(max, r.prefill_speed), 0);
                     const maxDecode = validPoints.reduce((max, r) => Math.max(max, r.output_speed), 0);
+                    const avgPrefill = validPoints.reduce((sum, r) => sum + r.prefill_speed, 0) / validPoints.length;
+                    const avgDecode = validPoints.reduce((sum, r) => sum + r.output_speed, 0) / validPoints.length;
 
                     pendingBatchPayloads.push({
                         temp_model_name: modelName,
                         temp_notes: notesStr,
                         concurrency: concurrencyNum,
-                        avg_prefill_speed: parseFloat(maxPrefill.toFixed(2)),
-                        avg_decode_speed: parseFloat(maxDecode.toFixed(2)),
+                        avg_prefill_speed: parseFloat(avgPrefill.toFixed(2)),
+                        avg_decode_speed: parseFloat(avgDecode.toFixed(2)),
+                        max_prefill_speed: parseFloat(maxPrefill.toFixed(2)),
+                        max_decode_speed: parseFloat(maxDecode.toFixed(2)),
+                        source: 'python_backend',
+                        record_tags: ['source:python_backend'],
                         results: validPoints
                     });
                 } catch (e) {

@@ -122,6 +122,7 @@ class ResultPoint(BaseModel):
     avg_itl_std: Optional[float] = None
     concurrency: int = 1
     successful: int = 1
+    boundary_source: Optional[str] = None
     concurrent_details: Optional[List[Dict]] = None
 
 class UploadPayload(BaseModel):
@@ -135,6 +136,10 @@ class UploadPayload(BaseModel):
     concurrency: int
     avg_prefill_speed: float
     avg_decode_speed: float
+    max_prefill_speed: Optional[float] = None
+    max_decode_speed: Optional[float] = None
+    source: Optional[str] = "python_backend"
+    record_tags: Optional[List[str]] = None
     results: List[ResultPoint]
 
     @field_validator('user_code')
@@ -161,11 +166,25 @@ class UploadPayload(BaseModel):
             raise ValueError('hardware 必填且不超过100字符')
         return v
 
-    @field_validator('avg_prefill_speed', 'avg_decode_speed')
+    @field_validator('avg_prefill_speed', 'avg_decode_speed', 'max_prefill_speed', 'max_decode_speed')
     @classmethod
     def validate_speed(cls, v):
+        if v is None:
+            return v
         if v < 0 or v > 2_000_000:
             raise ValueError('速度值超出合理范围 (0 ~ 2,000,000 t/s)')
+        return v
+
+    @field_validator('source')
+    @classmethod
+    def validate_source(cls, v):
+        if v is None:
+            return "python_backend"
+        v = v.strip()
+        if not v:
+            return "python_backend"
+        if len(v) > 50:
+            raise ValueError('source must be <= 50 characters')
         return v
 
     @field_validator('notes')
@@ -222,13 +241,26 @@ async def upload_result(request: Request, payload: UploadPayload):
             "avg_itl_std": r.avg_itl_std,
             "concurrency": r.concurrency,
             "successful": r.successful,
+            "boundary_source": r.boundary_source,
             "concurrent_details": [
-                {"prefill_speed": d.get("prefill_speed"), "output_speed": d.get("output_speed")}
+                {
+                    "prefill_speed": d.get("prefill_speed"),
+                    "output_speed": d.get("output_speed"),
+                    "boundary_source": d.get("boundary_source")
+                }
                 for d in (r.concurrent_details or [])
             ]
         }
         for r in payload.results
     ]
+
+    max_prefill_value = payload.max_prefill_speed if payload.max_prefill_speed is not None else payload.avg_prefill_speed
+    max_decode_value = payload.max_decode_speed if payload.max_decode_speed is not None else payload.avg_decode_speed
+    source_value = payload.source or "python_backend"
+    record_tags = [tag.strip() for tag in (payload.record_tags or []) if isinstance(tag, str) and tag.strip()]
+    if not any(tag.startswith("source:") for tag in record_tags):
+        record_tags.insert(0, f"source:{source_value}")
+    record_tags = list(dict.fromkeys(record_tags))
 
     # v3: 速率限制升级，每天每 user_code/ip 100次
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0).isoformat() + "Z"
@@ -254,6 +286,10 @@ async def upload_result(request: Request, payload: UploadPayload):
         "concurrency": payload.concurrency,
         "avg_prefill_speed": payload.avg_prefill_speed,
         "avg_decode_speed": payload.avg_decode_speed,
+        "max_prefill_speed": max_prefill_value,
+        "max_decode_speed": max_decode_value,
+        "source": source_value,
+        "record_tags": record_tags,
         "results_json": results_json,
         "ip_hash": ip_hash_val,
         "status": "public",
@@ -287,7 +323,12 @@ async def get_results(
     limit = min(limit, 100)
     
     # 允许按时间和速度排序
-    order_col = "created_at" if sort_by == "created_at" else "avg_decode_speed"
+    if sort_by == "created_at":
+        order_col = "created_at"
+    elif sort_by in ("max_prefill_speed", "max_decode_speed", "avg_prefill_speed", "avg_decode_speed"):
+        order_col = sort_by
+    else:
+        order_col = "max_decode_speed"
     
     params = f"status=eq.public&order={order_col}.desc&limit={limit}&offset={offset}"
     
@@ -307,7 +348,7 @@ async def get_results(
             params += f"&or=(nickname.ilike.*{safe_s}*,model_name.ilike.*{safe_s}*,user_code.eq.{safe_s.upper()})"
 
     resp = await _supabase_request(
-        "GET", f"{SUPABASE_TABLE}?{params}&select=id,user_code,nickname,model_name,hardware,framework,quantization,notes,concurrency,avg_prefill_speed,avg_decode_speed,created_at,results_json",
+        "GET", f"{SUPABASE_TABLE}?{params}&select=id,user_code,nickname,model_name,hardware,framework,quantization,notes,concurrency,avg_prefill_speed,avg_decode_speed,max_prefill_speed,max_decode_speed,source,record_tags,created_at,results_json",
     )
 
     if resp.status_code != 200:
@@ -922,32 +963,24 @@ async def execute_single_request(
         # 计算指标 - 使用第一个chunk时间作为prefill结束标志
         total_time_ms = (end_time - start_time) * 1000
 
-        if first_chunk_time is not None:
-            # 有chunk数据 - 可以计算准确的prefill和decode时间
-            ttft_ms = (first_chunk_time - start_time) * 1000
-            decode_time_ms = total_time_ms - ttft_ms  # decode时间 = 总时间 - prefill时间
-
-            # 确保decode时间至少为1ms（避免除零），但保留真实时间用于显示
-            real_decode_time_ms = decode_time_ms
-            decode_time_ms = max(decode_time_ms, 1)
-
-            if first_token_time is not None:
-                # 有实际内容token
-                token_first_ms = (first_token_time - start_time) * 1000
-                print(f"[Timing] TTFT(首个chunk): {ttft_ms:.2f}ms, 首个内容token: {token_first_ms:.2f}ms, Total: {total_time_ms:.2f}ms")
-            else:
-                # 没有内容token，但有chunk（服务器完成了处理）
-                print(f"[Timing] TTFT(首个chunk): {ttft_ms:.2f}ms, Total: {total_time_ms:.2f}ms, Decode: {real_decode_time_ms:.2f}ms")
-                if chunk_count > 0 and actual_output_tokens and actual_output_tokens > 0:
-                    if real_decode_time_ms < 10:
-                        print(f"[Warning] 收到 {chunk_count} 个chunk，usage显示 {actual_output_tokens} tokens，但decode时间极短 (可能非流式)")
-                    else:
-                        print(f"[Warning] 收到 {chunk_count} 个chunk，usage显示 {actual_output_tokens} tokens，但无流式内容")
+        # Use first content token as default prefill/decode boundary.
+        boundary_source = "first_content_token"
+        if first_token_time is not None:
+            boundary_time = first_token_time
+            ttft_ms = (boundary_time - start_time) * 1000
+            print(f"[Timing] Boundary=first_content_token, TTFT: {ttft_ms:.2f}ms, Total: {total_time_ms:.2f}ms")
+        elif first_chunk_time is not None:
+            boundary_source = "first_chunk_fallback"
+            boundary_time = first_chunk_time
+            ttft_ms = (boundary_time - start_time) * 1000
+            print(f"[Timing] Boundary fallback to first_chunk, TTFT: {ttft_ms:.2f}ms, Total: {total_time_ms:.2f}ms")
         else:
-            # 完全没有收到chunk - 异常情况
-            ttft_ms = total_time_ms  # fallback
-            decode_time_ms = 1
-            print(f"[Timing] 异常：未收到任何chunk, Total: {total_time_ms:.2f}ms")
+            boundary_source = "no_boundary_fallback"
+            boundary_time = end_time
+            ttft_ms = total_time_ms
+            print(f"[Timing] Warning: no token/chunk timestamp, fallback to end_time. Total: {total_time_ms:.2f}ms")
+
+        decode_time_ms = max(total_time_ms - ttft_ms, 1)
 
         print(f"[Timing] Server Prefill: {server_prefill_time_ms}ms, Server Decode: {server_decode_time_ms}ms")
         
@@ -988,7 +1021,7 @@ async def execute_single_request(
             prefill_time_ms = ttft_ms
             output_time_ms = decode_time_ms
             time_source = '端到端测量（基于chunk时序）'
-            print(f"[TimeSource] 使用端到端测量 - Prefill(TTFT): {prefill_time_ms:.2f}ms, Decode: {output_time_ms:.2f}ms")
+            print(f"[TimeSource] client timing fallback - Prefill(TTFT): {prefill_time_ms:.2f}ms, Decode: {output_time_ms:.2f}ms, Boundary: {boundary_source}")
             if server_prefill_time_ms or server_decode_time_ms:
                 print(f"[TimeSource] 部分服务器timing可用 - Prefill: {server_prefill_time_ms}ms, Decode: {server_decode_time_ms}ms")
 
@@ -1048,6 +1081,8 @@ async def execute_single_request(
             "start_timestamp": start_time,
             "first_chunk_timestamp": first_chunk_time,  # chunk到达时间
             "first_token_timestamp": first_token_time,  # 内容token时间
+            "boundary_timestamp": boundary_time,
+            "boundary_source": boundary_source,
             "end_timestamp": end_time,
             "token_source": token_source,  # 添加token来源
             # 新增ITL相关数据
@@ -1176,11 +1211,19 @@ async def websocket_test_endpoint(websocket: WebSocket):
                 # 计算聚合统计
                 avg_prefill_speed = sum(r["prefill_speed"] for r in successful_results) / len(successful_results)
                 avg_output_speed = sum(r["output_speed"] for r in successful_results) / len(successful_results)
+                max_prefill_speed = max(r["prefill_speed"] for r in successful_results)
+                max_output_speed = max(r["output_speed"] for r in successful_results)
                 avg_ttft = sum(r["ttft_ms"] for r in successful_results) / len(successful_results)
+                boundary_fallback_count = sum(1 for r in successful_results if r.get("boundary_source") == "first_chunk_fallback")
+                record_tags = ["source:python_backend"]
+                if boundary_fallback_count > 0:
+                    record_tags.append("boundary_source:first_chunk_fallback")
                 
                 print(f"[Stats] 成功: {len(successful_results)}/{config.concurrency}")
                 print(f"[Stats] 平均 Prefill速度: {avg_prefill_speed:.2f} t/s")
                 print(f"[Stats] 平均 Decode速度: {avg_output_speed:.2f} t/s")
+                print(f"[Stats] Max Prefill speed: {max_prefill_speed:.2f} t/s")
+                print(f"[Stats] Max Decode speed: {max_output_speed:.2f} t/s")
                 print(f"[Stats] 平均 TTFT: {avg_ttft:.2f} ms")
                 
                 result_summary = {
@@ -1191,7 +1234,12 @@ async def websocket_test_endpoint(websocket: WebSocket):
                     "failed": failed_count,
                     "avg_prefill_speed": round(avg_prefill_speed, 2),
                     "avg_output_speed": round(avg_output_speed, 2),
+                    "max_prefill_speed": round(max_prefill_speed, 2),
+                    "max_output_speed": round(max_output_speed, 2),
                     "avg_ttft_ms": round(avg_ttft, 2),
+                    "source": "python_backend",
+                    "record_tags": record_tags,
+                    "boundary_fallback_count": boundary_fallback_count,
                     "concurrent_details": successful_results,
                     "status": "成功"
                 }
