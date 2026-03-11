@@ -51,10 +51,10 @@
         .tabs {
             display: flex;
             flex-wrap: wrap;
-            align-items: flex-start;
-            justify-content: center;
-            margin-bottom: 20px;
-            gap: 15px;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 14px;
+            gap: 10px;
         }
 
         .tabs-side {
@@ -62,7 +62,8 @@
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            gap: 8px;
+            gap: 6px;
+            max-width: 68%;
         }
 
         .tabs-utility {
@@ -70,27 +71,32 @@
             flex-wrap: wrap;
             align-items: center;
             justify-content: flex-end;
-            gap: 8px;
+            gap: 6px;
+            padding: 6px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.12);
         }
 
         .tabs-community {
             display: inline-flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             align-items: center;
             gap: 6px;
             font-size: 12px;
             color: var(--text-main);
+            max-width: 460px;
         }
 
         .tab-btn {
             background: var(--bg-panel);
             color: var(--text-main);
             border: 1px solid var(--border-color);
-            padding: 10px 20px;
+            padding: 9px 16px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 15px;
             transition: all 0.2s;
         }
 
@@ -142,10 +148,13 @@
             background: var(--accent-purple);
             color: #fff;
             border: none;
-            padding: 6px 12px;
+            padding: 3px 6px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 9px;
+            line-height: 1.1;
+            min-height: 22px;
+            white-space: nowrap;
         }
 
         .btn-detail:hover {
@@ -280,14 +289,14 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-height: 30px;
-            padding: 0 12px;
+            min-height: 28px;
+            padding: 0 10px;
             border: 1px solid var(--border-color);
             border-radius: 999px;
             background: rgba(0, 0, 0, 0.14);
             color: var(--text-main);
             text-decoration: none;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             white-space: nowrap;
             transition: all 0.2s ease;
@@ -349,8 +358,12 @@
 
         .community-meta {
             color: var(--text-main);
-            font-size: 12px;
-            line-height: 1.4;
+            font-size: 11px;
+            line-height: 1.3;
+            max-width: 280px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .community-copy-btn {
@@ -358,10 +371,11 @@
             color: var(--accent-green);
             border: 1px solid var(--accent-green);
             border-radius: 999px;
-            padding: 4px 10px;
+            padding: 4px 9px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
             white-space: nowrap;
+            min-height: 28px;
         }
 
         .community-copy-btn:hover {
@@ -369,8 +383,8 @@
         }
 
         .model-tags-panel {
-            margin-bottom: 18px;
-            padding: 14px;
+            margin-bottom: 12px;
+            padding: 12px;
             border: 1px solid var(--border-color);
             border-radius: 10px;
             background: linear-gradient(135deg, rgba(97, 175, 239, 0.14), rgba(33, 37, 43, 0.92));
@@ -381,7 +395,7 @@
             justify-content: space-between;
             align-items: center;
             gap: 12px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
 
         .model-tags-title {
@@ -398,7 +412,7 @@
         .model-tag-bar {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
 
         .model-tag {
@@ -409,10 +423,10 @@
             color: var(--text-main);
             border: 1px solid var(--border-color);
             border-radius: 999px;
-            padding: 8px 12px;
+            padding: 6px 10px;
             cursor: pointer;
             transition: all 0.2s ease;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .model-tag:hover {
@@ -441,17 +455,17 @@
         .leaderboard-tools {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px;
             align-items: flex-end;
             margin-bottom: 0;
-            padding: 12px;
+            padding: 10px 12px;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             background: rgba(0, 0, 0, 0.16);
         }
 
         .leaderboard-tools-wrap {
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
         .mobile-filter-toggle {
@@ -503,7 +517,12 @@
 
         .rank-cell {
             font-weight: bold;
-            min-width: 84px;
+            min-width: 68px;
+        }
+
+        .col-rank {
+            width: 74px;
+            min-width: 74px;
         }
 
         tr.top-rank-1 {
@@ -522,11 +541,68 @@
             background: transparent;
             color: var(--accent-blue);
             border: 1px solid var(--accent-blue);
-            padding: 6px 10px;
+            padding: 3px 6px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 12px;
-            margin-left: 6px;
+            font-size: 9px;
+            margin-left: 0;
+            min-height: 22px;
+            line-height: 1.1;
+            white-space: nowrap;
+        }
+
+        .col-notes {
+            width: 9%;
+            min-width: 120px;
+            max-width: 160px;
+        }
+
+        .col-source-tags {
+            width: 9%;
+            min-width: 110px;
+            max-width: 150px;
+            white-space: normal;
+            word-break: break-word;
+            line-height: 1.25;
+        }
+
+        .col-prefill,
+        .col-decode {
+            width: 92px;
+            min-width: 92px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .col-actions {
+            width: 146px;
+            min-width: 146px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        #resultsTable th.col-rank,
+        #resultsTable td.col-rank,
+        #resultsTable th.col-prefill,
+        #resultsTable td.col-prefill,
+        #resultsTable th.col-decode,
+        #resultsTable td.col-decode {
+            padding-left: 9px;
+            padding-right: 9px;
+        }
+
+        #resultsTable th.col-actions,
+        #resultsTable td.col-actions {
+            padding-left: 7px;
+            padding-right: 7px;
+        }
+
+        .row-actions {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 3px;
+            white-space: nowrap;
         }
 
         .btn-copy-link:hover {
@@ -1248,6 +1324,22 @@
             padding: 12px 15px;
         }
 
+        body.force-desktop-view #resultsTable th.col-rank,
+        body.force-desktop-view #resultsTable td.col-rank,
+        body.force-desktop-view #resultsTable th.col-prefill,
+        body.force-desktop-view #resultsTable td.col-prefill,
+        body.force-desktop-view #resultsTable th.col-decode,
+        body.force-desktop-view #resultsTable td.col-decode {
+            padding-left: 9px;
+            padding-right: 9px;
+        }
+
+        body.force-desktop-view #resultsTable th.col-actions,
+        body.force-desktop-view #resultsTable td.col-actions {
+            padding-left: 7px;
+            padding-right: 7px;
+        }
+
         body.force-desktop-view .sort-toggle {
             padding: 12px 15px;
             gap: 8px;
@@ -1290,31 +1382,39 @@
             color: inherit;
         }
 
+        body.force-desktop-view .col-rank {
+            width: 74px;
+            min-width: 74px;
+        }
+
         body.force-desktop-view .col-prefill,
         body.force-desktop-view .col-decode {
-            width: auto;
-            min-width: 0;
-            text-align: left;
+            width: 92px;
+            min-width: 92px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
         }
 
         body.force-desktop-view .col-actions {
-            width: auto;
-            min-width: 0;
+            width: 146px;
+            min-width: 146px;
             text-align: left;
             position: static;
             right: auto;
             background: transparent;
             z-index: auto;
-            white-space: normal;
+            white-space: nowrap;
         }
 
         body.force-desktop-view .btn-detail {
-            font-size: 12px;
-            padding: 6px 12px;
+            font-size: 9px;
+            padding: 3px 6px;
         }
 
         body.force-desktop-view .btn-copy-link {
             display: inline-block;
+            font-size: 9px;
+            padding: 3px 6px;
         }
     </style>
 </head>
@@ -2139,7 +2239,7 @@
                     <td class="col-concurrency">${row.concurrency}</td>
                     <td class="col-prefill" style="color:#98c379; font-weight:bold;">${prefillText}</td>
                     <td class="col-decode" style="color:#c678dd; font-weight:bold;">${decodeText}</td>
-                    <td class="col-actions"><button class="btn-detail" onclick="viewDetails('${row.id}')">查看图表</button><button class="btn-copy-link" onclick="copyShareUrl('${encodeURIComponent(row.id)}', this)">复制链接</button></td>
+                    <td class="col-actions"><div class="row-actions"><button class="btn-detail" onclick="viewDetails('${row.id}')">查看图表</button><button class="btn-copy-link" onclick="copyShareUrl('${encodeURIComponent(row.id)}', this)">复制链接</button></div></td>
                 `;
                     tbody.appendChild(tr);
                 });
