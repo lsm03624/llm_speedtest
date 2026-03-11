@@ -1473,23 +1473,11 @@
         let modelTagFetchController = null;
         let currentModelTags = [];
         let pendingDeepLinkShareId = null;
-        const VIEW_MODE_STORAGE_KEY = 'llm_speedtest_leaderboard_view_mode';
-        let manualMobileView = false;
-        let forceDesktopView = true;
-        try {
-            const savedViewMode = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
-            if (savedViewMode === 'mobile') {
-                manualMobileView = true;
-                forceDesktopView = false;
-            } else if (savedViewMode === 'desktop') {
-                manualMobileView = false;
-                forceDesktopView = true;
-            }
-        } catch {
-            manualMobileView = false;
-            forceDesktopView = true;
-        }
-        let wasMobileViewport = manualMobileView ? true : (forceDesktopView ? false : window.matchMedia('(max-width: 900px)').matches);
+        const MOBILE_UA_RE = /(Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile)/i;
+        const isLikelyMobileClient = MOBILE_UA_RE.test(navigator.userAgent || '');
+        let manualMobileView = isLikelyMobileClient;
+        let forceDesktopView = !isLikelyMobileClient;
+        let wasMobileViewport = manualMobileView;
         let mobileFiltersCollapsed = false;
 
         // Chart instances
@@ -1797,12 +1785,9 @@
             }
         }
 
-        function toggleManualMobileView() {
+                function toggleManualMobileView() {
             manualMobileView = !manualMobileView;
             forceDesktopView = !manualMobileView;
-            try {
-                localStorage.setItem(VIEW_MODE_STORAGE_KEY, manualMobileView ? 'mobile' : 'desktop');
-            } catch { }
             applyManualViewMode();
             syncMobileFilterPanel(true);
         }
@@ -2358,6 +2343,8 @@
 </body>
 
 </html>
+
+
 
 
 
