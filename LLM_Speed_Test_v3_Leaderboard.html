@@ -1118,6 +1118,191 @@
         body.force-mobile-view .btn-copy-link {
             display: none;
         }
+
+        body.force-desktop-view {
+            padding: 20px;
+        }
+
+        body.force-desktop-view .container {
+            max-width: 1600px;
+        }
+
+        body.force-desktop-view .tabs {
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: flex-start;
+        }
+
+        body.force-desktop-view .tab-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+
+        body.force-desktop-view .tabs-side {
+            width: auto;
+            margin-left: auto;
+            align-items: flex-end;
+        }
+
+        body.force-desktop-view .tabs-utility {
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        body.force-desktop-view .tabs-community {
+            width: auto;
+            font-size: 12px;
+        }
+
+        body.force-desktop-view .community-meta {
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        body.force-desktop-view #manualViewToggleBtn {
+            min-height: 26px;
+            padding: 0 10px;
+            font-size: 11px;
+        }
+
+        body.force-desktop-view .model-tags-header {
+            flex-direction: row;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 12px;
+        }
+
+        body.force-desktop-view .model-tag-bar {
+            flex-wrap: wrap;
+            overflow: visible;
+            gap: 10px;
+            padding-bottom: 0;
+        }
+
+        body.force-desktop-view .model-tag {
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+
+        body.force-desktop-view .mobile-filter-toggle {
+            display: none !important;
+        }
+
+        body.force-desktop-view .leaderboard-tools-wrap.collapsed .leaderboard-tools {
+            display: flex !important;
+        }
+
+        body.force-desktop-view .leaderboard-tools {
+            display: flex !important;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+            padding: 12px;
+        }
+
+        body.force-desktop-view .leaderboard-tools .tool-group {
+            width: auto !important;
+            min-width: 120px !important;
+        }
+
+        body.force-desktop-view .leaderboard-tools .tool-group label {
+            font-size: 12px;
+        }
+
+        body.force-desktop-view .leaderboard-tools .tool-group input,
+        body.force-desktop-view .leaderboard-tools .tool-group select {
+            font-size: 13px;
+            padding: 6px 8px;
+        }
+
+        body.force-desktop-view .leaderboard-tools .tab-btn {
+            width: auto;
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        body.force-desktop-view .table-container {
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        body.force-desktop-view #resultsTable {
+            font-size: 14px;
+            table-layout: auto;
+        }
+
+        body.force-desktop-view #resultsTable th,
+        body.force-desktop-view #resultsTable td {
+            padding: 12px 15px;
+        }
+
+        body.force-desktop-view .sort-toggle {
+            padding: 12px 15px;
+            gap: 8px;
+        }
+
+        body.force-desktop-view .sort-label {
+            line-height: 1.35;
+            font-size: inherit;
+        }
+
+        body.force-desktop-view .sort-indicator {
+            min-width: 18px;
+            font-size: 12px;
+        }
+
+        body.force-desktop-view .col-rank,
+        body.force-desktop-view .col-time,
+        body.force-desktop-view .col-share-id,
+        body.force-desktop-view .col-user,
+        body.force-desktop-view .col-model,
+        body.force-desktop-view .col-config,
+        body.force-desktop-view .col-notes,
+        body.force-desktop-view .col-concurrency,
+        body.force-desktop-view .col-prefill,
+        body.force-desktop-view .col-decode,
+        body.force-desktop-view .col-actions {
+            display: table-cell !important;
+        }
+
+        body.force-desktop-view .col-model,
+        body.force-desktop-view .col-config {
+            white-space: normal;
+            word-break: normal;
+            line-height: normal;
+            vertical-align: middle;
+            width: auto;
+            min-width: 0;
+            font-size: inherit;
+            color: inherit;
+        }
+
+        body.force-desktop-view .col-prefill,
+        body.force-desktop-view .col-decode {
+            width: auto;
+            min-width: 0;
+            text-align: left;
+        }
+
+        body.force-desktop-view .col-actions {
+            width: auto;
+            min-width: 0;
+            text-align: left;
+            position: static;
+            right: auto;
+            background: transparent;
+            z-index: auto;
+            white-space: normal;
+        }
+
+        body.force-desktop-view .btn-detail {
+            font-size: 12px;
+            padding: 6px 12px;
+        }
+
+        body.force-desktop-view .btn-copy-link {
+            display: inline-block;
+        }
     </style>
 </head>
 
@@ -1290,12 +1475,21 @@
         let pendingDeepLinkShareId = null;
         const VIEW_MODE_STORAGE_KEY = 'llm_speedtest_leaderboard_view_mode';
         let manualMobileView = false;
+        let forceDesktopView = true;
         try {
-            manualMobileView = localStorage.getItem(VIEW_MODE_STORAGE_KEY) === 'mobile';
+            const savedViewMode = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+            if (savedViewMode === 'mobile') {
+                manualMobileView = true;
+                forceDesktopView = false;
+            } else if (savedViewMode === 'desktop') {
+                manualMobileView = false;
+                forceDesktopView = true;
+            }
         } catch {
             manualMobileView = false;
+            forceDesktopView = true;
         }
-        let wasMobileViewport = manualMobileView || window.matchMedia('(max-width: 900px)').matches;
+        let wasMobileViewport = manualMobileView ? true : (forceDesktopView ? false : window.matchMedia('(max-width: 900px)').matches);
         let mobileFiltersCollapsed = false;
 
         // Chart instances
@@ -1586,27 +1780,33 @@
         }
 
         function isMobileViewport() {
-            return manualMobileView || isPhysicalMobileViewport();
+            if (manualMobileView) return true;
+            if (forceDesktopView) return false;
+            return isPhysicalMobileViewport();
         }
 
         function applyManualViewMode() {
             document.body.classList.toggle('force-mobile-view', manualMobileView);
+            document.body.classList.toggle('force-desktop-view', forceDesktopView);
             const btn = document.getElementById('manualViewToggleBtn');
             if (btn) {
                 btn.classList.toggle('active', manualMobileView);
+                btn.classList.toggle('desktop-mode', forceDesktopView);
                 btn.textContent = manualMobileView ? '手机视图 开' : '手机视图 关';
-                btn.title = manualMobileView ? '当前强制手机视图，点击恢复默认自动识别' : '当前自动识别视图，点击强制为手机视图';
+                btn.title = manualMobileView ? '当前强制手机视图，点击切换为PC视图' : '当前强制PC视图，点击切换为手机视图';
             }
         }
 
         function toggleManualMobileView() {
             manualMobileView = !manualMobileView;
+            forceDesktopView = !manualMobileView;
             try {
-                localStorage.setItem(VIEW_MODE_STORAGE_KEY, manualMobileView ? 'mobile' : 'auto');
+                localStorage.setItem(VIEW_MODE_STORAGE_KEY, manualMobileView ? 'mobile' : 'desktop');
             } catch { }
             applyManualViewMode();
             syncMobileFilterPanel(true);
         }
+
         function setMobileFilterCollapsed(collapsed) {
             const wrap = document.getElementById('leaderboardToolsWrap');
             const toggle = document.getElementById('mobileFilterToggle');
@@ -2158,6 +2358,10 @@
 </body>
 
 </html>
+
+
+
+
 
 
 
