@@ -604,10 +604,9 @@
             <div class="tool-group" style="min-width:280px;">
                 <label for="searchInput">搜索</label>
                 <input type="text" id="searchInput" placeholder="搜索 识别码/用户/模型/ID"
-                    onkeydown="if(event.key='Enter') searchUnified()">
+                    onkeydown="if(event.key==='Enter') applyLeaderboardFilters()">
             </div>
-            <button class="tab-btn" onclick="searchUnified()" style="padding:6px 12px;">🔍 搜索</button>
-            <button class="tab-btn" onclick="applyLeaderboardFilters()" style="padding:6px 12px;">应用筛选</button>
+            <button class="tab-btn" onclick="applyLeaderboardFilters()" style="padding:6px 12px;">搜索 / 筛选</button>
             <button class="tab-btn" onclick="resetLeaderboardFilters()" style="padding:6px 12px;">重置</button>
         </div>
 
@@ -980,7 +979,22 @@
             currentMinDecode = parseFloat(document.getElementById('minDecodeInput')?.value || '0') || 0;
             currentMinPrefill = parseFloat(document.getElementById('minPrefillInput')?.value || '0') || 0;
             currentHardwareKeyword = (document.getElementById('hardwareFilterInput')?.value || '').trim();
+
+            const searchQuery = (document.getElementById('searchInput')?.value || '').trim();
             refreshModelTags();
+
+            if (searchQuery) {
+                currentTargetSearch = searchQuery;
+                loadLeaderboard('search_id', true);
+                return;
+            }
+
+            currentTargetSearch = null;
+            if (currentMode === 'search_id') {
+                loadLeaderboard('global', true);
+                return;
+            }
+
             loadLeaderboard(currentMode, true);
         }
 
@@ -989,15 +1003,22 @@
             currentMinDecode = 0;
             currentMinPrefill = 0;
             currentHardwareKeyword = '';
+            currentTargetSearch = null;
             const pageEl = document.getElementById('pageSizeSelect');
             const minDecodeEl = document.getElementById('minDecodeInput');
             const minPrefillEl = document.getElementById('minPrefillInput');
             const hwEl = document.getElementById('hardwareFilterInput');
+            const searchEl = document.getElementById('searchInput');
             if (pageEl) pageEl.value = String(PAGE_SIZE);
             if (minDecodeEl) minDecodeEl.value = '';
             if (minPrefillEl) minPrefillEl.value = '';
             if (hwEl) hwEl.value = '';
+            if (searchEl) searchEl.value = '';
             refreshModelTags();
+            if (currentMode === 'search_id') {
+                loadLeaderboard('global', true);
+                return;
+            }
             loadLeaderboard(currentMode, true);
         }
 
@@ -1221,16 +1242,6 @@
             tabModel.textContent = `🏷️ [${modelName}] 的记录`;
             tabModel.style.display = 'inline-block';
             loadLeaderboard('model');
-        }
-
-        function searchUnified() {
-            const query = document.getElementById('searchInput').value.trim();
-            if (!query) {
-                alert('请输入搜索内容');
-                return;
-            }
-            currentTargetSearch = query;
-            loadLeaderboard('search_id');
         }
 
         function changePage(delta) {
@@ -1478,15 +1489,4 @@
 </body>
 
 </html>
-
-
-
-
-
-
-
-
-
-
-
 
