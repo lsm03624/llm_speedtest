@@ -299,6 +299,13 @@
             transform: translateY(-1px);
         }
 
+        button.entry-link-btn {
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            font: inherit;
+        }
+
         .entry-link-btn.primary {
             background: var(--accent-blue);
             border-color: var(--accent-blue);
@@ -858,6 +865,222 @@
                 padding: 3px 4px;
             }
         }
+
+        body.force-mobile-view {
+            padding: 8px;
+        }
+
+        body.force-mobile-view .container {
+            max-width: 100%;
+        }
+
+        body.force-mobile-view h1 {
+            font-size: 22px;
+            margin: 0 0 4px;
+        }
+
+        body.force-mobile-view .header-sub {
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        body.force-mobile-view .tabs {
+            gap: 8px;
+            margin-bottom: 10px;
+            align-items: stretch;
+        }
+
+        body.force-mobile-view .tab-btn {
+            padding: 7px 10px;
+            font-size: 13px;
+        }
+
+        body.force-mobile-view .tabs-side {
+            width: 100%;
+            margin-left: 0;
+            align-items: stretch;
+        }
+
+        body.force-mobile-view .tabs-utility {
+            justify-content: flex-start;
+            gap: 6px;
+        }
+
+        body.force-mobile-view .tabs-community {
+            width: 100%;
+            font-size: 10px;
+        }
+
+        body.force-mobile-view .community-meta {
+            font-size: 10px;
+            line-height: 1.25;
+        }
+
+        body.force-mobile-view .entry-link-btn,
+        body.force-mobile-view .community-copy-btn {
+            min-height: 26px;
+            padding: 0 9px;
+            font-size: 11px;
+        }
+
+        body.force-mobile-view .model-tags-panel {
+            margin-bottom: 8px;
+            padding: 8px;
+        }
+
+        body.force-mobile-view .model-tags-header {
+            margin-bottom: 6px;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+        }
+
+        body.force-mobile-view .model-tags-title {
+            font-size: 12px;
+        }
+
+        body.force-mobile-view .model-tags-subtitle {
+            font-size: 11px;
+            line-height: 1.3;
+        }
+
+        body.force-mobile-view .model-tag-bar {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            gap: 6px;
+            padding-bottom: 2px;
+        }
+
+        body.force-mobile-view .model-tag {
+            flex: 0 0 auto;
+            padding: 5px 9px;
+            font-size: 11px;
+        }
+
+        body.force-mobile-view .leaderboard-tools-wrap {
+            margin-bottom: 10px;
+        }
+
+        body.force-mobile-view .mobile-filter-toggle {
+            display: block;
+        }
+
+        body.force-mobile-view .leaderboard-tools {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            padding: 8px;
+        }
+
+        body.force-mobile-view .leaderboard-tools .tool-group {
+            width: auto !important;
+            min-width: 0 !important;
+        }
+
+        body.force-mobile-view .leaderboard-tools .tool-group label {
+            font-size: 11px;
+        }
+
+        body.force-mobile-view .leaderboard-tools .tool-group input,
+        body.force-mobile-view .leaderboard-tools .tool-group select {
+            font-size: 12px;
+            padding: 5px 6px;
+        }
+
+        body.force-mobile-view .leaderboard-tools .tab-btn {
+            width: 100%;
+            padding: 6px 8px;
+            font-size: 12px;
+        }
+
+        body.force-mobile-view .table-container {
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        body.force-mobile-view #resultsTable {
+            font-size: 11px;
+            table-layout: fixed;
+        }
+
+        body.force-mobile-view #resultsTable th,
+        body.force-mobile-view #resultsTable td {
+            padding: 5px 3px;
+        }
+
+        body.force-mobile-view .sort-toggle {
+            padding: 6px 4px;
+            gap: 3px;
+        }
+
+        body.force-mobile-view .sort-label {
+            line-height: 1.25;
+            font-size: 11px;
+        }
+
+        body.force-mobile-view .sort-indicator {
+            min-width: 12px;
+            font-size: 10px;
+        }
+
+        body.force-mobile-view .col-rank,
+        body.force-mobile-view .col-time,
+        body.force-mobile-view .col-share-id,
+        body.force-mobile-view .col-user,
+        body.force-mobile-view .col-notes,
+        body.force-mobile-view .col-concurrency {
+            display: none;
+        }
+
+        body.force-mobile-view .col-model,
+        body.force-mobile-view .col-config {
+            white-space: normal;
+            word-break: break-word;
+            line-height: 1.28;
+            vertical-align: top;
+        }
+
+        body.force-mobile-view .col-model {
+            width: 24%;
+            min-width: 72px;
+            font-size: 11px;
+        }
+
+        body.force-mobile-view .col-config {
+            width: 28%;
+            min-width: 82px;
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        body.force-mobile-view .col-prefill,
+        body.force-mobile-view .col-decode {
+            width: 16%;
+            min-width: 50px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        body.force-mobile-view .col-actions {
+            width: 16%;
+            min-width: 54px;
+            text-align: center;
+            position: sticky;
+            right: 0;
+            background: var(--bg-panel);
+            z-index: 3;
+            white-space: nowrap;
+        }
+
+        body.force-mobile-view .btn-detail {
+            font-size: 10px;
+            padding: 3px 4px;
+        }
+
+        body.force-mobile-view .btn-copy-link {
+            display: none;
+        }
     </style>
 </head>
 
@@ -889,6 +1112,7 @@
                 <div class="tabs-utility">
                     <a class="entry-link-btn primary" href="https://gengchaogit.github.io/llm_speedtest/" target="_blank" rel="noopener noreferrer">去测速</a>
                     <a class="entry-link-btn" href="https://github.com/gengchaogit/llm_speedtest" target="_blank" rel="noopener noreferrer">GitHub</a>
+                    <button type="button" id="manualViewToggleBtn" class="entry-link-btn" onclick="toggleManualMobileView()">切换手机视图</button>
                     <span class="tabs-community">
                         <span class="community-title">QQ群</span>
                         <span class="community-meta">本地部署deepseek-r1:671b纯GPU方案 · 1028429001</span>
@@ -1026,7 +1250,14 @@
         let modelTagFetchController = null;
         let currentModelTags = [];
         let pendingDeepLinkShareId = null;
-        let wasMobileViewport = window.matchMedia('(max-width: 900px)').matches;
+        const VIEW_MODE_STORAGE_KEY = 'llm_speedtest_leaderboard_view_mode';
+        let manualMobileView = false;
+        try {
+            manualMobileView = localStorage.getItem(VIEW_MODE_STORAGE_KEY) === 'mobile';
+        } catch {
+            manualMobileView = false;
+        }
+        let wasMobileViewport = manualMobileView || window.matchMedia('(max-width: 900px)').matches;
         let mobileFiltersCollapsed = false;
 
         // Chart instances
@@ -1298,10 +1529,30 @@
             }
         }
 
-        function isMobileViewport() {
+        function isPhysicalMobileViewport() {
             return window.matchMedia('(max-width: 900px)').matches;
         }
 
+        function isMobileViewport() {
+            return manualMobileView || isPhysicalMobileViewport();
+        }
+
+        function applyManualViewMode() {
+            document.body.classList.toggle('force-mobile-view', manualMobileView);
+            const btn = document.getElementById('manualViewToggleBtn');
+            if (btn) {
+                btn.textContent = manualMobileView ? '恢复默认视图' : '切换手机视图';
+            }
+        }
+
+        function toggleManualMobileView() {
+            manualMobileView = !manualMobileView;
+            try {
+                localStorage.setItem(VIEW_MODE_STORAGE_KEY, manualMobileView ? 'mobile' : 'auto');
+            } catch { }
+            applyManualViewMode();
+            syncMobileFilterPanel(true);
+        }
         function setMobileFilterCollapsed(collapsed) {
             const wrap = document.getElementById('leaderboardToolsWrap');
             const toggle = document.getElementById('mobileFilterToggle');
@@ -1382,6 +1633,7 @@
             const pageEl = document.getElementById('pageSizeSelect');
             if (pageEl) pageEl.value = String(currentPageSize);
             updateSortIndicators();
+            applyManualViewMode();
             syncMobileFilterPanel(true);
             window.addEventListener('resize', () => {
                 if (isMobileViewport() !== wasMobileViewport) {
@@ -1851,9 +2103,4 @@
 </body>
 
 </html>
-
-
-
-
-
 
