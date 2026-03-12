@@ -1571,6 +1571,8 @@
         const MODEL_TAG_MIN_COUNT = getModelTagMinCountFromUrl();
         const MODEL_TAG_PAGE_SIZE = 1000;
         const MODEL_TAG_FETCH_LIMIT = 3000;
+        const RESULTS_FETCH_PAGE_SIZE = 1000;
+        const RESULTS_FETCH_LIMIT = 5000;
 
         let currentMode = 'global';
         let currentTargetUserCode = null;
@@ -1646,6 +1648,13 @@
             return 'select=id,user_code,nickname,model_name,hardware,framework,quantization,notes,concurrency,avg_prefill_speed,avg_decode_speed,max_prefill_speed,max_decode_speed,source,record_tags,results_json,created_at';
         }
 
+        function buildModelTagSelectFields() {
+            if (isLegacySchemaMode()) {
+                return 'select=model_name,avg_prefill_speed,avg_decode_speed';
+            }
+            return 'select=model_name,avg_prefill_speed,avg_decode_speed,max_prefill_speed,max_decode_speed';
+        }
+
         function isSchemaCompatibilityError(detailText) {
             if (!detailText) return false;
             const text = String(detailText).toLowerCase();
@@ -1673,13 +1682,15 @@
             }
         }
 
-        function buildGlobalFilterParams() {
+        function buildGlobalFilterParams(includeMetricFilters = true) {
             const params = [];
-            if (currentMinDecode > 0) {
-                params.push(`${getMetricField('decode')}=gte.${currentMinDecode}`);
-            }
-            if (currentMinPrefill > 0) {
-                params.push(`${getMetricField('prefill')}=gte.${currentMinPrefill}`);
+            if (includeMetricFilters) {
+                if (currentMinDecode > 0) {
+                    params.push(`${getMetricField('decode')}=gte.${currentMinDecode}`);
+                }
+                if (currentMinPrefill > 0) {
+                    params.push(`${getMetricField('prefill')}=gte.${currentMinPrefill}`);
+                }
             }
             if (currentHardwareKeyword) {
                 params.push(`hardware=ilike.${encodeURIComponent('*' + currentHardwareKeyword + '*')}`);
@@ -1719,15 +1730,15 @@
             return `order=${sortField}.${currentSortDirection}.nullslast`;
         }
 
-        function buildSupabaseResultsUrl(mode, offset, personalUserCode) {
+        function buildSupabaseResultsUrl(mode, offset, limit, personalUserCode) {
             const sbBase = SUPABASE_URL + '/rest/v1/speed_results';
             const queryParts = [
                 buildResultsSelectFields(),
-                buildSortParam(),
-                `limit=${currentPageSize}`,
+                'order=created_at.desc',
+                `limit=${limit}`,
                 `offset=${offset}`,
                 ...buildModeFilterParams(mode, personalUserCode),
-                ...buildGlobalFilterParams()
+                ...buildGlobalFilterParams(false)
             ];
             return `${sbBase}?${queryParts.join('&')}`;
         }
@@ -1735,17 +1746,17 @@
         function buildSupabaseModelTagUrl(offset, limit) {
             const sbBase = SUPABASE_URL + '/rest/v1/speed_results';
             const queryParts = [
-                'select=model_name',
+                buildModelTagSelectFields(),
                 'model_name=not.is.null',
                 `limit=${limit}`,
                 `offset=${offset}`,
-                ...buildGlobalFilterParams()
+                ...buildGlobalFilterParams(false)
             ];
             return `${sbBase}?${queryParts.join('&')}`;
         }
 
-        async function fetchLeaderboardRows(mode, offset, signal, personalUserCode) {
-            let url = buildSupabaseResultsUrl(mode, offset, personalUserCode);
+        async function fetchLeaderboardRows(mode, offset, limit, signal, personalUserCode) {
+            let url = buildSupabaseResultsUrl(mode, offset, limit, personalUserCode);
             let response = await fetch(url, { signal, headers: SB_HEADERS });
             if (response.ok) return await response.json();
 
@@ -1753,7 +1764,7 @@
             if (response.status === 400 && !isLegacySchemaMode() && isSchemaCompatibilityError(detail)) {
                 currentSchemaMode = LEADERBOARD_SCHEMA.LEGACY;
                 console.warn('Leaderboard fallback to legacy schema mode:', detail);
-                url = buildSupabaseResultsUrl(mode, offset, personalUserCode);
+                url = buildSupabaseResultsUrl(mode, offset, limit, personalUserCode);
                 response = await fetch(url, { signal, headers: SB_HEADERS });
                 if (response.ok) return await response.json();
                 const retryDetail = await readResponseErrorDetail(response);
@@ -1761,6 +1772,26 @@
             }
 
             throw new Error(`HTTP error ${response.status}${detail ? `: ${detail}` : ''}`);
+        }
+
+        async function fetchAllLeaderboardRows(mode, signal, personalUserCode) {
+            const rows = [];
+            let offset = 0;
+
+            while (offset < RESULTS_FETCH_LIMIT) {
+                const limit = Math.min(RESULTS_FETCH_PAGE_SIZE, RESULTS_FETCH_LIMIT - offset);
+                const batch = await fetchLeaderboardRows(mode, offset, limit, signal, personalUserCode);
+                if (!Array.isArray(batch) || batch.length === 0) break;
+                rows.push(...batch);
+                offset += batch.length;
+                if (batch.length < limit) break;
+            }
+
+            if (offset >= RESULTS_FETCH_LIMIT) {
+                console.warn(`Leaderboard fetch reached cap: ${RESULTS_FETCH_LIMIT} rows.`);
+            }
+
+            return rows;
         }
 
         async function fetchModelTags(signal) {
@@ -1791,6 +1822,7 @@
                 rows.forEach((row) => {
                     const modelName = (row.model_name || '').trim();
                     if (!modelName) return;
+                    if (!passesMetricThresholds(row)) return;
                     counts.set(modelName, (counts.get(modelName) || 0) + 1);
                 });
 
@@ -1909,6 +1941,66 @@
                 if (!Array.isArray(details)) details = [];
                 return { ...row, results_json: details };
             });
+        }
+
+        function pickDisplaySpeed(maxValue, avgValue) {
+            const maxNum = Number(maxValue);
+            if (Number.isFinite(maxNum) && maxNum > 0) return maxNum;
+            const avgNum = Number(avgValue);
+            if (Number.isFinite(avgNum) && avgNum > 0) return avgNum;
+            if (Number.isFinite(maxNum)) return maxNum;
+            if (Number.isFinite(avgNum)) return avgNum;
+            return NaN;
+        }
+
+        function getRowMetricValue(row, metricKey) {
+            if (metricKey === 'max_prefill_speed') {
+                return pickDisplaySpeed(row.max_prefill_speed, row.avg_prefill_speed);
+            }
+            if (metricKey === 'max_decode_speed') {
+                return pickDisplaySpeed(row.max_decode_speed, row.avg_decode_speed);
+            }
+            return NaN;
+        }
+
+        function passesMetricThresholds(row) {
+            if (currentMinDecode > 0) {
+                const decode = getRowMetricValue(row, 'max_decode_speed');
+                if (!Number.isFinite(decode) || decode < currentMinDecode) return false;
+            }
+            if (currentMinPrefill > 0) {
+                const prefill = getRowMetricValue(row, 'max_prefill_speed');
+                if (!Number.isFinite(prefill) || prefill < currentMinPrefill) return false;
+            }
+            return true;
+        }
+
+        function compareValuesWithNullLast(aValue, bValue, direction) {
+            const aOk = Number.isFinite(aValue);
+            const bOk = Number.isFinite(bValue);
+            if (aOk && bOk) {
+                return direction === 'asc' ? (aValue - bValue) : (bValue - aValue);
+            }
+            if (aOk && !bOk) return -1;
+            if (!aOk && bOk) return 1;
+            return 0;
+        }
+
+        function compareRowsByCurrentSort(a, b) {
+            let primary = 0;
+            if (currentSortKey === 'created_at') {
+                primary = compareValuesWithNullLast(Date.parse(a.created_at), Date.parse(b.created_at), currentSortDirection);
+            } else if (currentSortKey === 'max_prefill_speed' || currentSortKey === 'max_decode_speed') {
+                primary = compareValuesWithNullLast(getRowMetricValue(a, currentSortKey), getRowMetricValue(b, currentSortKey), currentSortDirection);
+            }
+            if (primary !== 0) return primary;
+            return compareValuesWithNullLast(Date.parse(a.created_at), Date.parse(b.created_at), 'desc');
+        }
+
+        function applyMetricFilterAndSort(rows) {
+            const filtered = rows.filter(row => passesMetricThresholds(row));
+            filtered.sort(compareRowsByCurrentSort);
+            return filtered;
         }
 
         function formatRankLabel(rank) {
@@ -2154,7 +2246,6 @@
             loading.textContent = '加载中... ⏳';
 
             try {
-                const offset = (currentPage - 1) * currentPageSize;
                 let personalUserCode = null;
                 if (mode === 'personal') {
                     personalUserCode = localStorage.getItem(USER_CODE_KEY);
@@ -2164,13 +2255,20 @@
                     }
                 }
 
-                let data = await fetchLeaderboardRows(mode, offset, signal, personalUserCode);
-                data = normalizeLeaderboardRows(data);
+                let allData = await fetchAllLeaderboardRows(mode, signal, personalUserCode);
+                allData = normalizeLeaderboardRows(allData);
+                const sortedFiltered = applyMetricFilterAndSort(allData);
+                const totalMatched = sortedFiltered.length;
 
-                if (!data || data.length === 0) {
-                    loading.textContent = '暂无数据 📭';
+                if (!sortedFiltered || totalMatched === 0) {
+                    loading.textContent = '暂无数据 😥';
                     return;
                 }
+
+                const totalPages = Math.max(1, Math.ceil(totalMatched / currentPageSize));
+                if (currentPage > totalPages) currentPage = totalPages;
+                const offset = (currentPage - 1) * currentPageSize;
+                const data = sortedFiltered.slice(offset, offset + currentPageSize);
 
                 resultsDataMap = {};
 
@@ -2207,8 +2305,8 @@
                     // Config text
                     const configText = [row.hardware, row.framework, row.quantization].filter(Boolean).map(escapeHtml).join(' / ');
                     const notesText = row.notes ? escapeHtml(row.notes) : '-';
-                    const prefillValue = Number.isFinite(Number(row.max_prefill_speed)) ? Number(row.max_prefill_speed) : Number(row.avg_prefill_speed);
-                    const decodeValue = Number.isFinite(Number(row.max_decode_speed)) ? Number(row.max_decode_speed) : Number(row.avg_decode_speed);
+                    const prefillValue = pickDisplaySpeed(row.max_prefill_speed, row.avg_prefill_speed);
+                    const decodeValue = pickDisplaySpeed(row.max_decode_speed, row.avg_decode_speed);
                     const prefillText = Number.isFinite(prefillValue) ? prefillValue.toFixed(1) : '-';
                     const decodeText = Number.isFinite(decodeValue) ? decodeValue.toFixed(1) : '-';
 
@@ -2245,7 +2343,7 @@
                 });
 
                 if (mode === 'search_id' && pendingDeepLinkShareId) {
-                    const matched = data.find(row => row.id === pendingDeepLinkShareId);
+                    const matched = sortedFiltered.find(row => row.id === pendingDeepLinkShareId);
                     pendingDeepLinkShareId = null;
                     if (matched) viewDetails(matched.id);
                 }
@@ -2255,10 +2353,9 @@
 
                 // Pagination display logic
                 pagination.style.display = 'block';
-                pageIndicator.textContent = `第 ${currentPage} 页 · 每页 ${currentPageSize} 条`;
+                pageIndicator.textContent = `Page ${currentPage} / ${totalPages} | ${totalMatched} rows | ${currentPageSize}/page`;
                 btnPrev.style.display = currentPage > 1 ? 'inline-block' : 'none';
-                // If we got fewer results than PAGE_SIZE, we hit the end
-                btnNext.style.display = data.length === currentPageSize ? 'inline-block' : 'none';
+                btnNext.style.display = (offset + data.length) < totalMatched ? 'inline-block' : 'none';
 
             } catch (e) {
                 if (e.name === 'AbortError') {
